@@ -8,9 +8,12 @@ emphasizing the service's role in issuing certificates.
 
 ## tl:dr
 
-In the Project-Origin Electricity implementation, consists of a fungible and non-fungible digital assets, where the non-fungible assets are called Guarantees of Origin (GCs). The fungible assets are called GC slices.
+In the Project-Origin Electricity implementation a Granular Certificate consists of a fungible and non-fungible digital assets.
+The non-fungible part are the information on the GC, all the attributes on it. 
+The fungible assets are called GC slices and contain the owner information and the amount in the slice.
 
-The GCs are issued by an issuing body and are stored in a registry. And an owner keeps track of their ownership of GC slices in a wallet. The process of issuing a GC is a complex process that involves multiple systems, to simplify this process, the OriginStamp is created.
+The GCs are issued by an issuing body and are stored in a registry. And an owner keeps track of their ownership of GC slices in a wallet.
+The process of issuing a GC is a complex process that involves multiple systems, to simplify this process, the OriginStamp is created.
 
 It will enable an issuing body to issue GCs using a simple REST API, and OriginStamp will take care of the complexity of the process.
 
