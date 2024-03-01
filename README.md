@@ -10,9 +10,9 @@ emphasizing the service's role in issuing certificates.
 
 In the Project-Origin Electricity implementation, consists of a fungible and non-fungible digital assets, where the non-fungible assets are called Guarantees of Origin (GCs). The fungible assets are called GC slices.
 
-The GCs are issued by an issuing body and are stored in a registry. And an owner keeps track of their ownership of GC slices in a wallet. The process of issuing a GC is a complex process that involves multiple systems, to simplify this process, the OriginStamp is created.
+The GCs are issued by an issuer and are stored in a registry. And an owner keeps track of their ownership of GC slices in a wallet. The process of issuing a GC is a complex process that involves multiple systems, to simplify this process, the OriginStamp is created.
 
-It will enable an issuing body to issue GCs using a simple REST API, and OriginStamp will take care of the complexity of the process.
+It will enable an issuer to issue GCs using a simple REST API, and OriginStamp will take care of the complexity of the process.
 
 ## Problem
 
@@ -46,7 +46,7 @@ OriginStamp should ease the process of issuing GCs for a new issuer.
 
 ## Solution
 
-OriginStamp will enable an issuing body to issue GCs using a simple REST API,
+OriginStamp will enable an issuer to issue GCs using a simple REST API,
 and OriginStamp will take care of the complexity of the process.
 
 The REST api will include endpoints for, but not limited to, the following features:
@@ -65,7 +65,7 @@ Below is a C4 system diagram of an overview of the system landscape OriginStamp 
 
 ## Resulting Context
 
-OriginStamp will enable an issuing body to easily issue GCs while not requiring the issuer to implement a complex system
+OriginStamp will enable an issuer to easily issue GCs while not requiring the issuer to implement a complex system
 and understanding all the complexity of the requirements for issuing GCs.
 
 OriginStamp also ensures that best practices are followed when issuing GCs, and that the privacy and integrity of the GCs are maintained.
