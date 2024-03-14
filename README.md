@@ -64,7 +64,7 @@ The REST api will include endpoints for, but not limited to, the following featu
 
 Below is a C4 system diagram of an overview of the system landscape OriginStamp is a part of.
 
-![C4 system diagram of the wallet](./doc/stamp-system.drawio.svg)
+![C4 system diagram of the OriginStamp](./doc/stamp-system.drawio.svg)
 
 ## Resulting Context
 
