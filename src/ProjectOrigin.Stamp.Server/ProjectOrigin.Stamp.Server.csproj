@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-   <EmbeddedResource Include="Database\Postgres\Scripts\*.sql">
+    <EmbeddedResource Include="Database\Postgres\Scripts\*.sql">
       <LogicalName>Scripts.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
