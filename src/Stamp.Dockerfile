@@ -28,4 +28,4 @@ RUN chmod -R 655 .
 
 USER $USER
 EXPOSE 5000
-ENTRYPOINT ["/bin/sh", "-c", "dotnet ${APPLICATION}.dll \"${@}\"" ]
+ENTRYPOINT ["/bin/sh", "-c", "dotnet ${APPLICATION}.dll \"${@}\"", "--" ]
