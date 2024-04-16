@@ -1,0 +1,15 @@
+name: SonarCloud
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  analyse:
+    uses: project-origin/.github/.github/workflows/reusable-sonarcloud.yaml@19c99bf2faa1428372bdb32dd2e63bd5d8a78ff2
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
