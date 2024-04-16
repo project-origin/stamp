@@ -88,7 +88,7 @@ public class Startup
                     .AddMeter(InstrumentationOptions.MeterName)
                     .AddRuntimeInstrumentation()
                     .AddProcessInstrumentation()
-                    .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint))
+                    .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!))
                 .WithTracing(provider =>
                     provider
                         .AddGrpcClientInstrumentation(grpcOptions =>
@@ -103,7 +103,7 @@ public class Startup
                         .AddAspNetCoreInstrumentation()
                         .AddNpgsql()
                         .AddSource(DiagnosticHeaders.DefaultListenerName)
-                        .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint));
+                        .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!));
         }
 
         services.AddMassTransit(o =>
