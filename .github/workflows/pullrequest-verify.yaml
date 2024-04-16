@@ -24,5 +24,5 @@ jobs:
       imagename: ghcr.io/project-origin/stamp
       version: test
       context: ./src
-      dockerfile: ./src/ProjectOrigin.Stamp.Server/Dockerfile
+      dockerfile: ./src/Stamp.Dockerfile
       push: false

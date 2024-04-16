@@ -19,6 +19,8 @@ Log.Logger = configuration.GetSeriLogger();
 
 try
 {
+    Log.Information("Application starting.");
+
     if (args.Contains("--migrate"))
     {
         Log.Information("Starting repository migration.");
@@ -38,6 +40,8 @@ try
         await app.RunAsync();
         Log.Information("Server stopped.");
     }
+
+    Log.Information("Application closing.");
 }
 catch (Exception ex)
 {

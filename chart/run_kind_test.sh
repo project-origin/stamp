@@ -27,7 +27,7 @@ kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/download
 helm install cnpg-operator cloudnative-pg --repo https://cloudnative-pg.io/charts --version 0.18.0 --namespace cnpg --create-namespace --wait
 
 # build docker image
-docker build -f src/ProjectOrigin.Stamp.Server/Dockerfile -t ghcr.io/project-origin/stamp:test src/
+docker build -f src/Stamp.Dockerfile -t ghcr.io/project-origin/stamp:test src/
 
 # load docker image into cluster
 kind load -n ${cluster_name} docker-image ghcr.io/project-origin/stamp:test
