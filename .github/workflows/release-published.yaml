@@ -1,0 +1,32 @@
+name: Build release artifacts
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  define-version:
+    uses: project-origin/.github/.github/workflows/reusable-tag-version.yaml@296700516bd3976694516cdb7271b7498ec44470
+
+  publish-container:
+    needs:
+      - define-version
+    uses: project-origin/.github/.github/workflows/reusable-build-push-container-ghcr.yaml@296700516bd3976694516cdb7271b7498ec44470
+    with:
+      imagename: ghcr.io/project-origin/stamp
+      version: ${{ needs.define-version.outputs.version }}
+      context: ./src
+      dockerfile: ./src/Stamp.Dockerfile
+      push: true
+
+  publish-chart:
+    needs:
+      - define-version
+      - publish-container
+    uses: project-origin/.github/.github/workflows/reusable-publish-chart.yaml@296700516bd3976694516cdb7271b7498ec44470
+    with:
+      version: ${{ needs.define-version.outputs.version }}
+      chart_folder: chart
+      helm_registry_repository: project-origin/helm-registry
+    secrets:
+      helm_registry_token: ${{ secrets.HELM_REGISTRY_TOKEN }}
