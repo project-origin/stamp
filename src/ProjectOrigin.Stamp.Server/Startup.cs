@@ -113,6 +113,7 @@ public class Startup
             o.ConfigureMassTransitTransport(_configuration.GetSection("MessageBroker").GetValid<MessageBrokerOptions>());
         });
 
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IDbConnectionFactory, PostgresConnectionFactory>();
 
         services.AddSwaggerGen(options =>
