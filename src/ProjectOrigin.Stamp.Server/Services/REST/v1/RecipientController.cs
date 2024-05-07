@@ -18,6 +18,7 @@ public class RecipientController : ControllerBase
     /// </summary>
     /// <param name="unitOfWork"></param>
     /// <param name="request">The create recipient request</param>
+    /// <response code="201">The recipient was created.</response>
     [HttpPost]
     [Route("v1/recipients")]
     [Produces("application/json")]
