@@ -17,6 +17,7 @@ public class RecipientController : ControllerBase
     /// Creates a new recipient
     /// </summary>
     /// <param name="unitOfWork"></param>
+    /// <param name="restApiOptions"></param>
     /// <param name="request">The create recipient request</param>
     /// <response code="201">The recipient was created.</response>
     [HttpPost]
