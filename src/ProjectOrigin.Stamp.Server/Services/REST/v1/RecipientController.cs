@@ -5,6 +5,8 @@ using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
 
@@ -22,6 +24,7 @@ public class RecipientController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<CreateRecipientResponse>> CreateRecipient(
         [FromServices] IUnitOfWork unitOfWork,
+        [FromServices] IOptions<RestApiOptions> restApiOptions,
         [FromBody] CreateRecipientRequest request)
     {
         var recipient = new Recipient
@@ -34,7 +37,9 @@ public class RecipientController : ControllerBase
 
         await unitOfWork.RecipientRepository.Create(recipient);
 
-        return Created($"v1/recipients/{recipient.Id}", new CreateRecipientResponse
+        unitOfWork.Commit();
+
+        return Created($"{restApiOptions.Value.PathBase}/v1/recipients/{recipient.Id}", new CreateRecipientResponse
         {
             Id = recipient.Id
         });
@@ -52,7 +57,7 @@ public class RecipientController : ControllerBase
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Recipient>> GetRecipient(
+    public async Task<ActionResult<RecipientDto>> GetRecipient(
         [FromServices] IUnitOfWork unitOfWork,
         [FromRoute] Guid recipientId)
     {
@@ -63,7 +68,16 @@ public class RecipientController : ControllerBase
             return NotFound();
         }
 
-        return Ok(recipient);
+        return Ok(new RecipientDto
+        {
+            Id = recipient.Id,
+            WalletEndpointReference = new WalletEndpointReferenceDto
+            {
+                Endpoint = new Uri(recipient.WalletEndpointReferenceEndpoint),
+                PublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
+                Version = recipient.WalletEndpointReferenceVersion
+            }
+        });
     }
 }
 
@@ -107,5 +121,17 @@ public record CreateRecipientResponse
     /// The ID of the created recipient.
     /// </summary>
     public required Guid Id { get; init; }
+}
+
+public record RecipientDto
+{
+    /// <summary>
+    /// The ID of the recipient.
+    /// </summary>
+    public required Guid Id { get; init; }
+    /// <summary>
+    /// The wallet endpoint reference of the recipient.
+    /// </summary>
+    public required WalletEndpointReferenceDto WalletEndpointReference { get; init; }
 }
 #endregion

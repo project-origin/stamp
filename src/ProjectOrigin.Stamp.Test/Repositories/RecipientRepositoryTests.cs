@@ -1,3 +1,4 @@
+using FluentAssertions;
 using ProjectOrigin.Stamp.Server.Repositories;
 using Npgsql;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
@@ -34,10 +35,11 @@ public class RecipientRepositoryTests : IClassFixture<PostgresDatabaseFixture>
 
         var queriedRecipient = await _repository.Get(recipient.Id);
 
-        Assert.NotNull(queriedRecipient);
-        Assert.Equal(recipient.Id, queriedRecipient.Id);
-        Assert.Equal(recipient.WalletEndpointReferenceVersion, queriedRecipient.WalletEndpointReferenceVersion);
-        Assert.Equal(recipient.WalletEndpointReferenceEndpoint, queriedRecipient.WalletEndpointReferenceEndpoint);
-        Assert.Equal(recipient.WalletEndpointReferencePublicKey.Export(), queriedRecipient.WalletEndpointReferencePublicKey.Export());
+        queriedRecipient.Should().NotBeNull();
+
+        queriedRecipient!.Id.Should().Be(recipient.Id);
+        queriedRecipient.WalletEndpointReferenceVersion.Should().Be(recipient.WalletEndpointReferenceVersion);
+        queriedRecipient.WalletEndpointReferenceEndpoint.Should().Be(recipient.WalletEndpointReferenceEndpoint);
+        queriedRecipient.WalletEndpointReferencePublicKey.Export().ToArray().Should().BeEquivalentTo(recipient.WalletEndpointReferencePublicKey.Export().ToArray());
     }
 }
