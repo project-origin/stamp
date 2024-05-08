@@ -7,7 +7,15 @@ namespace ProjectOrigin.Stamp.Server.Database;
 
 public class UnitOfWork : IUnitOfWork, IDisposable
 {
-    public IRecipientRepository RecipientRepository => GetRepository(connection => new RecipientRepository(connection));
+    private IRecipientRepository _recipientRepository = null!;
+
+    public IRecipientRepository RecipientRepository
+    {
+        get
+        {
+            return _recipientRepository ??= new RecipientRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+        }
+    }
 
     private readonly Dictionary<Type, object> _repositories = new Dictionary<Type, object>();
     private readonly Lazy<IDbConnection> _lazyConnection;
@@ -56,20 +64,6 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         ResetUnitOfWork();
     }
 
-
-    public T GetRepository<T>(Func<IDbConnection, T> factory) where T : class
-    {
-        if (_repositories.TryGetValue(typeof(T), out var foundRepository))
-        {
-            return (T)foundRepository;
-        }
-        else
-        {
-            var newRepository = factory(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
-            _repositories.Add(typeof(T), newRepository);
-            return newRepository;
-        }
-    }
     private void ResetUnitOfWork()
     {
         if (_lazyTransaction.IsValueCreated)
