@@ -12,6 +12,7 @@ public class RegistryOptions
 {
     public const string Registry = nameof(Registry);
 
+    [Required]
     public Dictionary<string, string> RegistryUrls { get; set; } = new Dictionary<string, string>();
 
     [Required]
@@ -39,6 +40,16 @@ public class RegistryOptions
         }
 
         throw new NotSupportedException($"Not supported GridArea {gridArea}");
+    }
+
+    public string GetRegistryUrl(string name)
+    {
+        if (RegistryUrls.TryGetValue(name, out var url))
+        {
+            return url;
+        }
+
+        throw new NotSupportedException($"Registry {name} not supported");
     }
 
     private static IPrivateKey ToPrivateKey(byte[] key)

@@ -8,6 +8,7 @@ namespace ProjectOrigin.Stamp.Server.Database;
 public class UnitOfWork : IUnitOfWork, IDisposable
 {
     public IRecipientRepository RecipientRepository => GetRepository(connection => new RecipientRepository(connection));
+    public ICertificateRepository CertificateRepository => GetRepository(connection => new CertificateRepository(connection));
 
     private readonly Dictionary<Type, object> _repositories = new Dictionary<Type, object>();
     private readonly Lazy<IDbConnection> _lazyConnection;

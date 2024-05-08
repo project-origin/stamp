@@ -71,6 +71,8 @@ public class Startup
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddRegistryOptions();
+
         services.ConfigurePersistance(_configuration);
 
         var otlpOptions = _configuration.GetSection(OtlpOptions.Prefix).GetValid<OtlpOptions>();

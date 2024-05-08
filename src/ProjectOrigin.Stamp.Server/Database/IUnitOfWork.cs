@@ -8,4 +8,5 @@ public interface IUnitOfWork
     void Rollback();
 
     IRecipientRepository RecipientRepository { get; }
+    ICertificateRepository CertificateRepository { get; }
 }
