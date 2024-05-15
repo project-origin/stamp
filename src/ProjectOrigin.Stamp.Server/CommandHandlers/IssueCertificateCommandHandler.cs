@@ -61,10 +61,10 @@ public class IssueCertificateCommandHandler : IConsumer<IssueCertificateCommand>
             {
                 Id = msg.CertificateId,
                 RegistryName = msg.RegistryName,
-                Type = msg.Type.MapToModel(),
+                CertificateType = msg.Type.MapToModel(),
                 Quantity = msg.Quantity,
-                Start = msg.Start,
-                End = msg.End,
+                StartDate = msg.Start,
+                EndDate = msg.End,
                 GridArea = msg.GridArea,
                 ClearTextAttributes = msg.ClearTextAttributes,
                 HashedAttributes = new List<CertificateHashedAttribute>() //msg.HashedAttributes

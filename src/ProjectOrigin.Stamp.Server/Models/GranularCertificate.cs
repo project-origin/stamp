@@ -34,13 +34,13 @@ public record GranularCertificate
 {
     public required Guid Id { get; init; }
     public required string RegistryName { get; init; }
-    public required GranularCertificateType Type { get; init; }
+    public required GranularCertificateType CertificateType { get; init; }
     public required uint Quantity { get; init; }
-    public required long Start { get; init; }
-    public required long End { get; init; }
+    public required long StartDate { get; init; }
+    public required long EndDate { get; init; }
     public required string GridArea { get; init; }
-    public required Dictionary<string, string> ClearTextAttributes { get; init; }
-    public required IEnumerable<CertificateHashedAttribute> HashedAttributes { get; init; }
+    public required Dictionary<string, string> ClearTextAttributes { get; init; } = new();
+    public required List<CertificateHashedAttribute> HashedAttributes { get; init; } = new();
 
     public IssuedState IssuedState { get; private set; } = IssuedState.Creating;
     public string? RejectionReason { get; private set; }

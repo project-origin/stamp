@@ -23,13 +23,13 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
     {
         var cert = new GranularCertificate
         {
-            End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            EndDate = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
             GridArea = "DK1",
             ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" }  },
             HashedAttributes = new List<CertificateHashedAttribute>(),
             Id = Guid.NewGuid(),
-            Type = GranularCertificateType.Production,
-            Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            CertificateType = GranularCertificateType.Production,
+            StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Quantity = 1234,
             RegistryName = "Energinet.dk"
         };
@@ -44,8 +44,8 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
         queriedCert.Id.Should().Be(cert.Id);
         queriedCert.Quantity.Should().Be(cert.Quantity);
         queriedCert.RegistryName.Should().Be(cert.RegistryName);
-        queriedCert.Start.Should().Be(cert.Start);
-        queriedCert.End.Should().Be(cert.End);
-        queriedCert.Type.Should().Be(cert.Type);
+        queriedCert.StartDate.Should().Be(cert.StartDate);
+        queriedCert.EndDate.Should().Be(cert.EndDate);
+        queriedCert.CertificateType.Should().Be(cert.CertificateType);
     }
 }

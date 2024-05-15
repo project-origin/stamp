@@ -28,15 +28,15 @@ public class CertificateRepository : ICertificateRepository
         //TODO Set Hashed attributes
         await _connection.ExecuteAsync(
             @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area)
-              VALUES (@id, @registryName, @type, @quantity, @startDate, @endDate, @gridArea)",
+              VALUES (@id, @registryName, @certificateType, @quantity, @startDate, @endDate, @gridArea)",
             new
             {
                 certificate.Id,
                 certificate.RegistryName,
-                certificate.Type,
+                certificate.CertificateType,
                 quantity = (long)certificate.Quantity,
-                startDate = certificate.Start,
-                endDate = certificate.End,
+                startDate = certificate.StartDate,
+                endDate = certificate.EndDate,
                 certificate.GridArea
             });
 
@@ -78,7 +78,7 @@ public class CertificateRepository : ICertificateRepository
                 }
 
                 if(atr != null)
-                    certificate.ClearTextAttributes.Add(atr.Value, atr.Value);
+                    certificate.ClearTextAttributes.Add(atr.Key, atr.Value);
 
                 return certificate;
             },
