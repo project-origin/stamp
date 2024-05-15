@@ -17,6 +17,12 @@ public enum IssuedState
     Rejected = 3
 }
 
+public record CertificateClearTextAttribute
+{
+    public required string Key { get; init; }
+    public required string Value { get; init; }
+}
+
 public record CertificateHashedAttribute()
 {
     public required string Key { get; init; }

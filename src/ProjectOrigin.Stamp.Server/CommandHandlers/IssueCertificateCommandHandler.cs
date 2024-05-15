@@ -88,11 +88,13 @@ public class IssueCertificateCommandHandler : IConsumer<IssueCertificateCommand>
         {
             var techCode = msg.ClearTextAttributes[Helpers.Registry.Attributes.TechCode];
             var fuelCode = msg.ClearTextAttributes[Helpers.Registry.Attributes.FuelCode];
-            issueEvent = Helpers.Registry.CreateIssuedEventForProduction(msg.RegistryName, msg.CertificateId, PeriodHelper.ToDateInterval(msg.Start, msg.End), msg.GridArea, recipient.GSRN, techCode, fuelCode, commitment, ownerPublicKey);
+            //TODO Set assetId correct
+            issueEvent = Helpers.Registry.CreateIssuedEventForProduction(msg.RegistryName, msg.CertificateId, PeriodHelper.ToDateInterval(msg.Start, msg.End), msg.GridArea, "1234", techCode, fuelCode, commitment, ownerPublicKey);
         }
         else
         {
-            issueEvent = Helpers.Registry.CreateIssuedEventForConsumption(msg.RegistryName, msg.CertificateId, PeriodHelper.ToDateInterval(msg.Start, msg.End), msg.GridArea, recipient.GSRN, commitment, ownerPublicKey);
+            //TODO Set assetId correct
+            issueEvent = Helpers.Registry.CreateIssuedEventForConsumption(msg.RegistryName, msg.CertificateId, PeriodHelper.ToDateInterval(msg.Start, msg.End), msg.GridArea, "1234", commitment, ownerPublicKey);
         }
 
         using var channel = GrpcChannel.ForAddress(_registryOptions.GetRegistryUrl(msg.RegistryName));

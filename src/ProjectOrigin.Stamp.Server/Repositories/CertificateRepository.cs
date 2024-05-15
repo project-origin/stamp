@@ -25,6 +25,7 @@ public class CertificateRepository : ICertificateRepository
 
     public async Task Create(GranularCertificate certificate)
     {
+        //TODO Set Hashed attributes
         await _connection.ExecuteAsync(
             @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area)
               VALUES (@id, @registryName, @type, @quantity, @startDate, @endDate, @gridArea)",
@@ -33,7 +34,7 @@ public class CertificateRepository : ICertificateRepository
                 certificate.Id,
                 certificate.RegistryName,
                 certificate.Type,
-                certificate.Quantity,
+                quantity = (long)certificate.Quantity,
                 startDate = certificate.Start,
                 endDate = certificate.End,
                 certificate.GridArea
@@ -42,7 +43,7 @@ public class CertificateRepository : ICertificateRepository
         foreach (var atr in certificate.ClearTextAttributes)
         {
             await _connection.ExecuteAsync(
-                @"INSERT INTO attributes(id, attribute_key, attribute_value, certificate_id, registry_name)
+                @"INSERT INTO ClearTextAttributes(id, attribute_key, attribute_value, certificate_id, registry_name)
                   VALUES (@id, @key, @value, @certificateId, @registryName)",
                 new
                 {
@@ -58,10 +59,10 @@ public class CertificateRepository : ICertificateRepository
     public async Task<GranularCertificate?> Get(string registryName, Guid certificateId)
     {
         var certsDictionary = new Dictionary<Guid, GranularCertificate>();
-        await _connection.QueryAsync<GranularCertificate?, KeyValuePair<string, string>?, GranularCertificate?>(
+        await _connection.QueryAsync<GranularCertificate?, CertificateClearTextAttribute?, GranularCertificate?>(
             @"SELECT c.*, a.attribute_key as key, a.attribute_value as value
               FROM certificates c
-              LEFT JOIN Attributes a
+              LEFT JOIN ClearTextAttributes a
                 ON c.id = a.certificate_id
                 AND c.registry_name = a.registry_name
               WHERE c.id = @certificateId
@@ -77,7 +78,7 @@ public class CertificateRepository : ICertificateRepository
                 }
 
                 if(atr != null)
-                    certificate.ClearTextAttributes.Add(atr.Value.Key, atr.Value.Value);
+                    certificate.ClearTextAttributes.Add(atr.Value, atr.Value);
 
                 return certificate;
             },
