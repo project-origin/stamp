@@ -14,7 +14,7 @@ RUN dotnet build ${PROJECT} -c Release --no-restore -o /app/build
 RUN dotnet publish ${PROJECT} -c Release -o /app/publish
 
 # ------- production image -------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.4 AS production
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.5 AS production
 ARG PROJECT
 ARG USER
 
