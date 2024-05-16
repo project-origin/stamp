@@ -7,8 +7,24 @@ namespace ProjectOrigin.Stamp.Server.Database;
 
 public class UnitOfWork : IUnitOfWork, IDisposable
 {
-    public IRecipientRepository RecipientRepository => GetRepository(connection => new RecipientRepository(connection));
-    public ICertificateRepository CertificateRepository => GetRepository(connection => new CertificateRepository(connection));
+    private IRecipientRepository _recipientRepository = null!;
+
+    public IRecipientRepository RecipientRepository
+    {
+        get
+        {
+            return _recipientRepository ??= new RecipientRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+        }
+    }
+
+    private ICertificateRepository _certificateRepository = null!;
+    public ICertificateRepository CertificateRepository
+    {
+        get
+        {
+            return _certificateRepository ??= new CertificateRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+        }
+    }
 
     private readonly Dictionary<Type, object> _repositories = new Dictionary<Type, object>();
     private readonly Lazy<IDbConnection> _lazyConnection;

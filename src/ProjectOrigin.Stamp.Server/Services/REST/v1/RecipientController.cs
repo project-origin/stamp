@@ -41,7 +41,7 @@ public class RecipientController : ControllerBase
 
         unitOfWork.Commit();
 
-        return Created($"{restApiOptions.Value.PathBase}/v1/recipients/{recipient.Id}", new CreateRecipientResponse
+        return Created(null as string, new CreateRecipientResponse
         {
             Id = recipient.Id
         });
@@ -80,7 +80,7 @@ public class RecipientController : ControllerBase
                 Version = recipient.WalletEndpointReferenceVersion
             }
         });
-    }
+}
 }
 
 #region Records
