@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.Stamp.Server;
+using ProjectOrigin.Stamp.Server.Repositories;
 using ProjectOrigin.Stamp.Server.Services.REST.v1;
 using ProjectOrigin.Stamp.Test.Extensions;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
@@ -13,11 +14,13 @@ namespace ProjectOrigin.Stamp.Test.REST;
 public class RecipientControllerTests : IClassFixture<TestServerFixture<Startup>>, IClassFixture<PostgresDatabaseFixture>
 {
     private readonly TestServerFixture<Startup> _fixture;
+    private readonly PostgresDatabaseFixture _postgres;
 
     public RecipientControllerTests(TestServerFixture<Startup> fixture, PostgresDatabaseFixture postgres)
     {
         fixture.PostgresConnectionString = postgres.ConnectionString;
         _fixture = fixture;
+        _postgres = postgres;
     }
 
     [Fact]
@@ -39,12 +42,13 @@ public class RecipientControllerTests : IClassFixture<TestServerFixture<Startup>
         post.StatusCode.Should().Be(HttpStatusCode.Created);
         var response = await post.Content.ReadJson<CreateRecipientResponse>();
 
-        var get = await client.GetFromJsonAsync<RecipientDto>(post.Headers.Location!.ToString());
+        using var connection = _postgres.GetConnectionFactory().CreateConnection();
+        connection.Open();
+        var repo = new RecipientRepository(connection);
 
-        get.Should().NotBeNull();
-        get!.Id.Should().Be(response!.Id);
-        get.WalletEndpointReference.Version.Should().Be(createRecipientRequest.WalletEndpointReference.Version);
-        get.WalletEndpointReference.Endpoint.Should().Be(createRecipientRequest.WalletEndpointReference.Endpoint);
-        get.WalletEndpointReference.PublicKey.Should().BeEquivalentTo(createRecipientRequest.WalletEndpointReference.PublicKey);
+        var recipient = await repo.Get(response!.Id);
+        recipient!.WalletEndpointReferenceVersion.Should().Be(createRecipientRequest.WalletEndpointReference.Version);
+        recipient.WalletEndpointReferenceEndpoint.Should().Be(createRecipientRequest.WalletEndpointReference.Endpoint.ToString());
+        recipient.WalletEndpointReferencePublicKey.Export().ToArray().Should().BeEquivalentTo(createRecipientRequest.WalletEndpointReference.PublicKey);
     }
 }
