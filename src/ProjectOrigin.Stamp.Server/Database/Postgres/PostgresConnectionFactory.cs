@@ -1,7 +1,6 @@
 using System.Data;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using ProjectOrigin.Stamp.Server.Database.Postgres;
 
 namespace ProjectOrigin.Stamp.Server.Database.Postgres;
 
