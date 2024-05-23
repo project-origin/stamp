@@ -46,41 +46,6 @@ public class RecipientController : ControllerBase
             Id = recipient.Id
         });
     }
-
-    /// <summary>
-    /// Gets a specific recipient.
-    /// </summary>
-    /// <param name="unitOfWork"></param>
-    /// <param name="recipientId">The ID of the recipient to get.</param>
-    /// <response code="200">The recipient was found.</response>
-    /// <response code="404">If the recipient specified is not found.</response>
-    [HttpGet]
-    [Route("v1/recipients/{recipientId}")]
-    [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(void), StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<RecipientDto>> GetRecipient(
-        [FromServices] IUnitOfWork unitOfWork,
-        [FromRoute] Guid recipientId)
-    {
-        var recipient = await unitOfWork.RecipientRepository.Get(recipientId);
-
-        if (recipient == null)
-        {
-            return NotFound();
-        }
-
-        return Ok(new RecipientDto
-        {
-            Id = recipient.Id,
-            WalletEndpointReference = new WalletEndpointReferenceDto
-            {
-                Endpoint = new Uri(recipient.WalletEndpointReferenceEndpoint),
-                PublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
-                Version = recipient.WalletEndpointReferenceVersion
-            }
-        });
-}
 }
 
 #region Records
