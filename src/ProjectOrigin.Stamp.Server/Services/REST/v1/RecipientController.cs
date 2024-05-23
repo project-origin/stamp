@@ -5,8 +5,6 @@ using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
-using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
 
@@ -17,7 +15,6 @@ public class RecipientController : ControllerBase
     /// Creates a new recipient
     /// </summary>
     /// <param name="unitOfWork"></param>
-    /// <param name="restApiOptions"></param>
     /// <param name="request">The create recipient request</param>
     /// <response code="201">The recipient was created.</response>
     [HttpPost]
@@ -26,7 +23,6 @@ public class RecipientController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<ActionResult<CreateRecipientResponse>> CreateRecipient(
         [FromServices] IUnitOfWork unitOfWork,
-        [FromServices] IOptions<RestApiOptions> restApiOptions,
         [FromBody] CreateRecipientRequest request)
     {
         var recipient = new Recipient
@@ -88,17 +84,5 @@ public record CreateRecipientResponse
     /// The ID of the created recipient.
     /// </summary>
     public required Guid Id { get; init; }
-}
-
-public record RecipientDto
-{
-    /// <summary>
-    /// The ID of the recipient.
-    /// </summary>
-    public required Guid Id { get; init; }
-    /// <summary>
-    /// The wallet endpoint reference of the recipient.
-    /// </summary>
-    public required WalletEndpointReferenceDto WalletEndpointReference { get; init; }
 }
 #endregion
