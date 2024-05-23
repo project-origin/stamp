@@ -40,7 +40,7 @@ public class CertificatesController : ControllerBase
         if (recipient == null)
             return NotFound($"Recipient with id {request.RecipientId} not found.");
 
-        var cmd = new IssueCertificateCommand
+        var cmd = new CreateCertificateCommand
         {
             CertificateId = Guid.NewGuid(),
             RegistryName = request.RegistryName,

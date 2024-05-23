@@ -17,7 +17,7 @@ using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.CommandHandlers;
 
-public record IssueCertificateCommand
+public record CreateCertificateCommand
 {
     public required Guid RecipientId { get; init; }
     public required string RegistryName { get; init; }
@@ -31,14 +31,14 @@ public record IssueCertificateCommand
     public required IEnumerable<HashedAttribute> HashedAttributes { get; init; }
 }
 
-public class IssueCertificateCommandHandler : IConsumer<IssueCertificateCommand>
+public class CreateCertificateCommandHandler : IConsumer<CreateCertificateCommand>
 {
     private readonly IKeyGenerator _keyGenerator;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<IssueCertificateCommandHandler> _logger;
+    private readonly ILogger<CreateCertificateCommandHandler> _logger;
     private readonly RegistryOptions _registryOptions;
 
-    public IssueCertificateCommandHandler(IKeyGenerator keyGenerator, IUnitOfWork unitOfWork, IOptions<RegistryOptions> registryOptions, ILogger<IssueCertificateCommandHandler> logger)
+    public CreateCertificateCommandHandler(IKeyGenerator keyGenerator, IUnitOfWork unitOfWork, IOptions<RegistryOptions> registryOptions, ILogger<CreateCertificateCommandHandler> logger)
     {
         _keyGenerator = keyGenerator;
         _unitOfWork = unitOfWork;
@@ -46,7 +46,7 @@ public class IssueCertificateCommandHandler : IConsumer<IssueCertificateCommand>
         _registryOptions = registryOptions.Value;
     }
 
-    public async Task Consume(ConsumeContext<IssueCertificateCommand> context)
+    public async Task Consume(ConsumeContext<CreateCertificateCommand> context)
     {
         _logger.LogInformation("Issuing to Registry for certificate id {certificateId}.", context.Message.CertificateId);
         var msg = context.Message;
