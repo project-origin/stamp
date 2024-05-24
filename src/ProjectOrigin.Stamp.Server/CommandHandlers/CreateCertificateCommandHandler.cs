@@ -3,17 +3,10 @@ using ProjectOrigin.Stamp.Server.Services.REST.v1;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Grpc.Net.Client;
 using Microsoft.Extensions.Logging;
-using ProjectOrigin.Registry.V1;
 using ProjectOrigin.Stamp.Server.Database;
-using ProjectOrigin.Stamp.Server.Exceptions;
-using ProjectOrigin.Electricity.V1;
-using ProjectOrigin.PedersenCommitment;
-using ProjectOrigin.Stamp.Server.Helpers;
-using Microsoft.Extensions.Options;
+using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Models;
-using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.CommandHandlers;
 
@@ -22,7 +15,7 @@ public record CreateCertificateCommand
     public required Guid RecipientId { get; init; }
     public required string RegistryName { get; init; }
     public required Guid CertificateId { get; init; }
-    public required CertificateType Type { get; init; }
+    public required GranularCertificateType CertificateType { get; init; }
     public required uint Quantity { get; init; }
     public required long Start { get; init; }
     public required long End { get; init; }
@@ -33,25 +26,22 @@ public record CreateCertificateCommand
 
 public class CreateCertificateCommandHandler : IConsumer<CreateCertificateCommand>
 {
-    private readonly IKeyGenerator _keyGenerator;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateCertificateCommandHandler> _logger;
-    private readonly RegistryOptions _registryOptions;
 
-    public CreateCertificateCommandHandler(IKeyGenerator keyGenerator, IUnitOfWork unitOfWork, IOptions<RegistryOptions> registryOptions, ILogger<CreateCertificateCommandHandler> logger)
+    public CreateCertificateCommandHandler(IUnitOfWork unitOfWork, ILogger<CreateCertificateCommandHandler> logger)
     {
-        _keyGenerator = keyGenerator;
         _unitOfWork = unitOfWork;
         _logger = logger;
-        _registryOptions = registryOptions.Value;
     }
 
     public async Task Consume(ConsumeContext<CreateCertificateCommand> context)
     {
-        _logger.LogInformation("Issuing to Registry for certificate id {certificateId}.", context.Message.CertificateId);
+        _logger.LogInformation("Creating certificate with id {certificateId}.", context.Message.CertificateId);
         var msg = context.Message;
-        //Get from db and if not present: save to db (if GSRN is available)
-        //Skal assetId med i dto?
+        //TODO: Get from db and if not present: save to db (if GSRN is available)
+        //TODO: Skal assetId med i dto?
+        //TODO: Set HashedAttributes
 
         var cert = await _unitOfWork.CertificateRepository.Get(msg.RegistryName, msg.CertificateId);
 
@@ -61,7 +51,7 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
             {
                 Id = msg.CertificateId,
                 RegistryName = msg.RegistryName,
-                CertificateType = msg.Type.MapToModel(),
+                CertificateType = msg.CertificateType,
                 Quantity = msg.Quantity,
                 StartDate = msg.Start,
                 EndDate = msg.End,
@@ -71,40 +61,12 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
             };
 
             await _unitOfWork.CertificateRepository.Create(granularCertificate);
-            _unitOfWork.Commit();
         }
 
-        var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(msg.Start);
-        if (!endpointPosition.HasValue)
-            throw new WalletException($"Cannot determine wallet endpoint position for certificate with id {msg.CertificateId}");
-
-        var recipient = await _unitOfWork.RecipientRepository.Get(msg.RecipientId);
-        var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(recipient!.WalletEndpointReferencePublicKey.Export().ToArray(), endpointPosition.Value, msg.GridArea);
-
-        var commitment = new SecretCommitmentInfo(msg.Quantity);
-        IssuedEvent issueEvent;
-
-        if (msg.Type == CertificateType.Production)
+        await context.Publish<CertificateCreatedEvent>(new CertificateCreatedEvent
         {
-            var techCode = msg.ClearTextAttributes[Helpers.Registry.Attributes.TechCode];
-            var fuelCode = msg.ClearTextAttributes[Helpers.Registry.Attributes.FuelCode];
-            //TODO Set assetId correct
-            issueEvent = Helpers.Registry.CreateIssuedEventForProduction(msg.RegistryName, msg.CertificateId, PeriodHelper.ToDateInterval(msg.Start, msg.End), msg.GridArea, "1234", techCode, fuelCode, commitment, ownerPublicKey);
-        }
-        else
-        {
-            //TODO Set assetId correct
-            issueEvent = Helpers.Registry.CreateIssuedEventForConsumption(msg.RegistryName, msg.CertificateId, PeriodHelper.ToDateInterval(msg.Start, msg.End), msg.GridArea, "1234", commitment, ownerPublicKey);
-        }
 
-        using var channel = GrpcChannel.ForAddress(_registryOptions.GetRegistryUrl(msg.RegistryName));
-        var client = new RegistryService.RegistryServiceClient(channel);
-
-        var request = new SendTransactionsRequest();
-        request.Transactions.Add(issueEvent.CreateTransaction(issuerKey));
-
-        await client.SendTransactionsAsync(request);
-
-        //await context.Execute();
+        });
+        _unitOfWork.Commit();
     }
 }

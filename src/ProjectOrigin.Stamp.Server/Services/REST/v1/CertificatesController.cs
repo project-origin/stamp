@@ -45,7 +45,7 @@ public class CertificatesController : ControllerBase
             CertificateId = Guid.NewGuid(),
             RegistryName = request.RegistryName,
             RecipientId = request.RecipientId,
-            Type = request.Certificate.Type,
+            CertificateType = request.Certificate.Type.MapToModel(),
             Quantity = request.Certificate.Quantity,
             Start = request.Certificate.Start,
             End = request.Certificate.End,
@@ -59,7 +59,6 @@ public class CertificatesController : ControllerBase
         return Accepted(new IssueCertificateResponse());
     }
 }
-
 
 #region Records
 
