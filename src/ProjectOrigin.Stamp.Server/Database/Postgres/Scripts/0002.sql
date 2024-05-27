@@ -6,6 +6,8 @@ CREATE TABLE Certificates (
     start_date bigint NOT NULL,
     end_date bigint NOT NULL,
     grid_area VARCHAR(256) NOT NULL,
+    issued_state integer NOT NULL,
+    rejection_reason VARCHAR(1024) NULL,
     PRIMARY KEY(id, registry_name)
 );
 

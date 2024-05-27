@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
@@ -45,13 +46,14 @@ public class CertificatesController : ControllerBase
             CertificateId = Guid.NewGuid(),
             RegistryName = request.RegistryName,
             RecipientId = request.RecipientId,
+            WalletEndpointReferencePublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
             CertificateType = request.Certificate.Type.MapToModel(),
             Quantity = request.Certificate.Quantity,
             Start = request.Certificate.Start,
             End = request.Certificate.End,
             GridArea = request.Certificate.GridArea,
             ClearTextAttributes = request.Certificate.ClearTextAttributes,
-            HashedAttributes = request.Certificate.HashedAttributes
+            HashedAttributes = request.Certificate.HashedAttributes.MapToModel().ToList()
         };
 
         await bus.Publish(cmd);

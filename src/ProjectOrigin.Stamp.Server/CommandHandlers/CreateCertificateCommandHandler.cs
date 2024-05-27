@@ -1,18 +1,20 @@
 using MassTransit;
-using ProjectOrigin.Stamp.Server.Services.REST.v1;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Models;
+using ProjectOrigin.Stamp.Server.Extensions;
 
 namespace ProjectOrigin.Stamp.Server.CommandHandlers;
 
 public record CreateCertificateCommand
 {
     public required Guid RecipientId { get; init; }
+    public required byte[] WalletEndpointReferencePublicKey { get; init; }
     public required string RegistryName { get; init; }
     public required Guid CertificateId { get; init; }
     public required GranularCertificateType CertificateType { get; init; }
@@ -21,7 +23,7 @@ public record CreateCertificateCommand
     public required long End { get; init; }
     public required string GridArea { get; init; }
     public required Dictionary<string, string> ClearTextAttributes { get; init; }
-    public required IEnumerable<HashedAttribute> HashedAttributes { get; init; }
+    public required List<CertificateHashedAttribute> HashedAttributes { get; init; }
 }
 
 public class CreateCertificateCommandHandler : IConsumer<CreateCertificateCommand>
@@ -38,35 +40,54 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
     public async Task Consume(ConsumeContext<CreateCertificateCommand> context)
     {
         _logger.LogInformation("Creating certificate with id {certificateId}.", context.Message.CertificateId);
-        var msg = context.Message;
+        var message = context.Message;
         //TODO: Get from db and if not present: save to db (if GSRN is available)
         //TODO: Skal assetId med i dto?
         //TODO: Set HashedAttributes
+        //TODO: Config retries
+        //TODO: config CertificateSentToRegistryEventHandler to not exceptions for retries
 
-        var cert = await _unitOfWork.CertificateRepository.Get(msg.RegistryName, msg.CertificateId);
+        var cert = await _unitOfWork.CertificateRepository.Get(message.RegistryName, message.CertificateId);
 
         if (cert == null)
         {
-            var granularCertificate = new GranularCertificate
+            cert = new GranularCertificate
             {
-                Id = msg.CertificateId,
-                RegistryName = msg.RegistryName,
-                CertificateType = msg.CertificateType,
-                Quantity = msg.Quantity,
-                StartDate = msg.Start,
-                EndDate = msg.End,
-                GridArea = msg.GridArea,
-                ClearTextAttributes = msg.ClearTextAttributes,
-                HashedAttributes = new List<CertificateHashedAttribute>() //msg.HashedAttributes
+                Id = message.CertificateId,
+                RegistryName = message.RegistryName,
+                CertificateType = message.CertificateType,
+                Quantity = message.Quantity,
+                StartDate = message.Start,
+                EndDate = message.End,
+                GridArea = message.GridArea,
+                ClearTextAttributes = message.ClearTextAttributes,
+                HashedAttributes = new List<CertificateHashedAttribute>() //TODO: msg.HashedAttributes
             };
 
-            await _unitOfWork.CertificateRepository.Create(granularCertificate);
+            await _unitOfWork.CertificateRepository.Create(cert);
         }
 
-        //await context.Publish<CertificateCreatedEvent>(new CertificateCreatedEvent
-        //{
-
-        //});
+        var payloadObj = new CertificateCreatedEvent
+        {
+            CertificateType = cert.CertificateType,
+            CertificateId = cert.Id,
+            Start = cert.StartDate,
+            End = cert.EndDate,
+            GridArea = cert.GridArea,
+            ClearTextAttributes = cert.ClearTextAttributes,
+            HashedAttributes = cert.HashedAttributes,
+            Quantity = cert.Quantity,
+            RegistryName = message.RegistryName,
+            WalletEndpointReferencePublicKey = message.WalletEndpointReferencePublicKey,
+            RecipientId = message.RecipientId
+        };
+        await _unitOfWork.OutboxMessageRepository.Create(new OutboxMessage
+        {
+            Created = DateTimeOffset.Now.ToUtcTime(),
+            Id = Guid.NewGuid(),
+            JsonPayload = JsonSerializer.Serialize(payloadObj),
+            MessageType = typeof(CertificateCreatedEvent).ToString()
+        });
         _unitOfWork.Commit();
     }
 }

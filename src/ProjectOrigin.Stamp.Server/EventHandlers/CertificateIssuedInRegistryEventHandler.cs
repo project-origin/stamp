@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using ProjectOrigin.Stamp.Server.Database;
+using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Models;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
@@ -10,13 +12,10 @@ namespace ProjectOrigin.Stamp.Server.EventHandlers;
 public record CertificateIssuedInRegistryEvent
 {
     public required Guid CertificateId { get; init; }
-    public required GranularCertificateType CertificateType { get; init; }
     public required string Registry { get; init; }
-    public required uint Quantity { get; init; }
-    public required byte[] RandomR { get; init; }
+    public required Guid RecipientId { get; init; }
     public required uint WalletEndpointPosition { get; init; }
-    public required byte[] WalletPublicKey { get; init; }
-    public required string WalletUrl { get; init; }
+    public required byte[] RandomR { get; init; }
 }
 
 public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssuedInRegistryEvent>
@@ -39,25 +38,33 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
 
         if (certificate == null)
         {
-            _logger.LogWarning("Certificate with registry {message.Registry} and certificateId {message.CertificateId} not found.", message.Registry, message.CertificateId);
+            _logger.LogWarning("Certificate with registry {message.RegistryName} and certificateId {message.CertificateId} not found.", message.Registry, message.CertificateId);
             return;
         }
 
         if (!certificate.IsIssued)
             certificate.Issue();
 
-        //await context.Publish<CertificateMarkedAsIssuedEvent>(new CertificateMarkedAsIssuedEvent
-        //{
-        //    CertificateId = message.CertificateId,
-        //    Registry = message.Registry,
-        //    Quantity = message.Quantity,
-        //    RandomR = message.RandomR,
-        //    WalletEndpointPosition = message.WalletEndpointPosition,
-        //    WalletPublicKey = message.WalletPublicKey,
-        //    WalletUrl = message.WalletUrl
-        //});
+        await _unitOfWork.CertificateRepository.SetState(message.CertificateId, message.Registry, certificate.IssuedState);
+
+        var payloadObj = new CertificateMarkedAsIssuedEvent
+        {
+            CertificateId = message.CertificateId,
+            Quantity = certificate.Quantity,
+            RandomR = message.RandomR,
+            RecipientId = message.RecipientId,
+            RegistryName = message.Registry,
+            WalletEndpointPosition = message.WalletEndpointPosition
+        };
+        await _unitOfWork.OutboxMessageRepository.Create(new OutboxMessage
+        {
+            Created = DateTimeOffset.UtcNow.ToUtcTime(),
+            Id = Guid.NewGuid(),
+            MessageType = typeof(CertificateMarkedAsIssuedEvent).ToString(),
+            JsonPayload = JsonSerializer.Serialize(payloadObj)
+        });
         _unitOfWork.Commit();
 
-        _logger.LogInformation("Certificate with registry {message.Registry} and certificateId {message.CertificateId} issued.", message.Registry, message.CertificateId);
+        _logger.LogInformation("Certificate with registry {message.RegistryName} and certificateId {message.CertificateId} issued.", message.Registry, message.CertificateId);
     }
 }

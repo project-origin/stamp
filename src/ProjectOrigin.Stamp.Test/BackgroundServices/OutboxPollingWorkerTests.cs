@@ -11,7 +11,6 @@ using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.Repositories;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.Stamp.Server.EventHandlers;
-using ProjectOrigin.Stamp.Server.Services.REST.v1;
 
 namespace ProjectOrigin.Stamp.Test.BackgroundServices;
 
@@ -50,10 +49,11 @@ public class OutboxPollingWorkerTests
             End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
             GridArea = "DK1",
             ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
-            HashedAttributes = new List<HashedAttribute>(),
+            HashedAttributes = new List<CertificateHashedAttribute>(),
             Quantity = 1234,
             RegistryName = "Energinet.dk",
-            WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray()
+            WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
+            RecipientId = Guid.NewGuid()
         };
         var message = new OutboxMessage
         {

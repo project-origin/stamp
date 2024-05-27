@@ -12,6 +12,7 @@ public interface ICertificateRepository
 {
     Task Create(GranularCertificate certificate);
     Task<GranularCertificate?> Get(string registryName, Guid certificateId);
+    Task SetState(Guid certificateId, string registryName, IssuedState state);
 }
 
 public class CertificateRepository : ICertificateRepository
@@ -27,8 +28,8 @@ public class CertificateRepository : ICertificateRepository
     {
         //TODO Set Hashed attributes
         await _connection.ExecuteAsync(
-            @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area)
-              VALUES (@id, @registryName, @certificateType, @quantity, @startDate, @endDate, @gridArea)",
+            @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area, issued_state, rejection_reason)
+              VALUES (@id, @registryName, @certificateType, @quantity, @startDate, @endDate, @gridArea, @issuedState, @rejectionReason)",
             new
             {
                 certificate.Id,
@@ -37,7 +38,9 @@ public class CertificateRepository : ICertificateRepository
                 quantity = (long)certificate.Quantity,
                 startDate = certificate.StartDate,
                 endDate = certificate.EndDate,
-                certificate.GridArea
+                certificate.GridArea,
+                certificate.IssuedState,
+                certificate.RejectionReason
             });
 
         foreach (var atr in certificate.ClearTextAttributes)
@@ -90,5 +93,23 @@ public class CertificateRepository : ICertificateRepository
             });
 
         return certsDictionary.Values.FirstOrDefault();
+    }
+
+    public async Task SetState(Guid certificateId, string registryName, IssuedState state)
+    {
+        var rowsChanged = await _connection.ExecuteAsync(
+            @"UPDATE Certificates
+                SET issued_state = @state
+                WHERE id = @certificateId
+                AND registry_name = @registryName",
+            new
+            {
+                certificateId,
+                registryName,
+                state
+            });
+
+        if (rowsChanged != 1)
+            throw new InvalidOperationException($"Certificate with id {certificateId} and registry {registryName} could not be found");
     }
 }

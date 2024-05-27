@@ -49,7 +49,7 @@ public class RegistryOptions
             return url;
         }
 
-        throw new NotSupportedException($"Registry {name} not supported");
+        throw new NotSupportedException($"RegistryName {name} not supported");
     }
 
     private static IPrivateKey ToPrivateKey(byte[] key)
