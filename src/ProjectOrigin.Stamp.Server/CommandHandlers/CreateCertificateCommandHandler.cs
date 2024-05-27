@@ -63,10 +63,10 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
             await _unitOfWork.CertificateRepository.Create(granularCertificate);
         }
 
-        await context.Publish<CertificateCreatedEvent>(new CertificateCreatedEvent
-        {
+        //await context.Publish<CertificateCreatedEvent>(new CertificateCreatedEvent
+        //{
 
-        });
+        //});
         _unitOfWork.Commit();
     }
 }

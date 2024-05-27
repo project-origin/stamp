@@ -46,17 +46,17 @@ public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentTo
             {
                 _logger.LogInformation("Transaction {id} with certificate {certificateId} completed.", message.ShaId, message.CertificateId);
 
-                await context.Publish<CertificateIssuedInRegistryEvent>(new CertificateIssuedInRegistryEvent
-                {
-                    CertificateId = message.CertificateId,
-                    MeteringPointType = message.MeteringPointType,
-                    Quantity = message.Quantity,
-                    RandomR = message.RandomR,
-                    WalletUrl = message.WalletUrl,
-                    WalletEndpointPosition = message.WalletEndpointPosition,
-                    WalletPublicKey = message.WalletPublicKey,
-                    Registry = message.Registry
-                });
+                //await context.Publish<CertificateIssuedInRegistryEvent>(new CertificateIssuedInRegistryEvent
+                //{
+                //    CertificateId = message.CertificateId,
+                //    MeteringPointType = message.MeteringPointType,
+                //    Quantity = message.Quantity,
+                //    RandomR = message.RandomR,
+                //    WalletUrl = message.WalletUrl,
+                //    WalletEndpointPosition = message.WalletEndpointPosition,
+                //    WalletPublicKey = message.WalletPublicKey,
+                //    Registry = message.Registry
+                //});
                 return;
             }
 
@@ -64,12 +64,12 @@ public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentTo
             {
                 _logger.LogWarning("Transaction {id} with certificate {certificateId} failed in registry.", message.ShaId, message.CertificateId);
 
-                await context.Publish<CertificateFailedInRegistryEvent>(new CertificateFailedInRegistryEvent
-                {
-                    MeteringPointType = message.MeteringPointType,
-                    CertificateId = message.CertificateId,
-                    RejectReason = "Rejected by the registry"
-                });
+                //await context.Publish<CertificateFailedInRegistryEvent>(new CertificateFailedInRegistryEvent
+                //{
+                //    MeteringPointType = message.MeteringPointType,
+                //    CertificateId = message.CertificateId,
+                //    RejectReason = "Rejected by the registry"
+                //});
                 return;
             }
 

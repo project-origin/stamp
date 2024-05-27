@@ -26,6 +26,15 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         }
     }
 
+    private IOutboxMessageRepository _outboxMessageRepository = null!;
+    public IOutboxMessageRepository OutboxMessageRepository
+    {
+        get
+        {
+            return _outboxMessageRepository ??= new OutboxMessageRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+        }
+    }
+
     private readonly Dictionary<Type, object> _repositories = new Dictionary<Type, object>();
     private readonly Lazy<IDbConnection> _lazyConnection;
     private Lazy<IDbTransaction> _lazyTransaction;

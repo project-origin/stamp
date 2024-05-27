@@ -22,3 +22,11 @@ CREATE TABLE ClearTextAttributes (
         ON DELETE NO ACTION
         NOT VALID
 );
+
+CREATE TABLE OutboxMessages (
+    id uuid NOT NULL PRIMARY KEY,
+    message_type VARCHAR(250) NOT NULL,
+    json_payload TEXT NOT NULL,
+    created timestamp with time zone NOT NULL,
+    processed BOOLEAN NOT NULL
+);

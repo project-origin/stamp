@@ -17,6 +17,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
+using ProjectOrigin.Stamp.Server.BackgroundServices;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Database.Mapping;
 using ProjectOrigin.Stamp.Server.Database.Postgres;
@@ -117,6 +118,8 @@ public class Startup
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IDbConnectionFactory, PostgresConnectionFactory>();
+
+        services.AddHostedService<OutboxPollingWorker>();
 
         services.AddSwaggerGen(options =>
         {

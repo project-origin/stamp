@@ -9,4 +9,5 @@ public interface IUnitOfWork
 
     IRecipientRepository RecipientRepository { get; }
     ICertificateRepository CertificateRepository { get; }
+    IOutboxMessageRepository OutboxMessageRepository { get; }
 }

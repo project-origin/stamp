@@ -5,7 +5,6 @@ using Grpc.Net.Client;
 using MassTransit;
 using Microsoft.Extensions.Options;
 using ProjectOrigin.Electricity.V1;
-using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using ProjectOrigin.PedersenCommitment;
 using ProjectOrigin.Registry.V1;
 using ProjectOrigin.Stamp.Server.Database;
@@ -13,6 +12,7 @@ using ProjectOrigin.Stamp.Server.Exceptions;
 using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Options;
 using ProjectOrigin.Stamp.Server.Services.REST.v1;
+using GranularCertificateType = ProjectOrigin.Stamp.Server.Models.GranularCertificateType;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -20,7 +20,7 @@ public record CertificateCreatedEvent
 {
     public required Guid CertificateId { get; init; }
     public required string RegistryName { get; init; }
-    public required IHDPublicKey WalletEndpointReferencePublicKey { get; init; }
+    public required byte[] WalletEndpointReferencePublicKey { get; init; }
     public required GranularCertificateType CertificateType { get; init; }
     public required uint Quantity { get; init; }
     public required long Start { get; init; }
@@ -52,7 +52,7 @@ public class CertificateCreatedEventHandler : IConsumer<CertificateCreatedEvent>
         if (!endpointPosition.HasValue)
             throw new WalletException($"Cannot determine wallet endpoint position for certificate with id {msg.CertificateId}");
 
-        var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(msg.WalletEndpointReferencePublicKey.Export().ToArray(), endpointPosition.Value, msg.GridArea);
+        var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(msg.WalletEndpointReferencePublicKey, endpointPosition.Value, msg.GridArea);
 
         var commitment = new SecretCommitmentInfo(msg.Quantity);
         IssuedEvent issueEvent;

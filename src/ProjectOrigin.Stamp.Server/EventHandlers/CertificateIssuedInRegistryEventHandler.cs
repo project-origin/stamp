@@ -46,16 +46,16 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
         if (!certificate.IsIssued)
             certificate.Issue();
 
-        await context.Publish<CertificateMarkedAsIssuedEvent>(new CertificateMarkedAsIssuedEvent
-        {
-            CertificateId = message.CertificateId,
-            Registry = message.Registry,
-            Quantity = message.Quantity,
-            RandomR = message.RandomR,
-            WalletEndpointPosition = message.WalletEndpointPosition,
-            WalletPublicKey = message.WalletPublicKey,
-            WalletUrl = message.WalletUrl
-        });
+        //await context.Publish<CertificateMarkedAsIssuedEvent>(new CertificateMarkedAsIssuedEvent
+        //{
+        //    CertificateId = message.CertificateId,
+        //    Registry = message.Registry,
+        //    Quantity = message.Quantity,
+        //    RandomR = message.RandomR,
+        //    WalletEndpointPosition = message.WalletEndpointPosition,
+        //    WalletPublicKey = message.WalletPublicKey,
+        //    WalletUrl = message.WalletUrl
+        //});
         _unitOfWork.Commit();
 
         _logger.LogInformation("Certificate with registry {message.Registry} and certificateId {message.CertificateId} issued.", message.Registry, message.CertificateId);
