@@ -57,12 +57,12 @@ public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentTo
             {
                 _logger.LogWarning("Registry transaction {id} with certificateId {certificateId} failed in registry.", message.ShaId, message.CertificateId);
 
-                //await context.Publish<CertificateFailedInRegistryEvent>(new CertificateFailedInRegistryEvent
-                //{
-                //    MeteringPointType = message.MeteringPointType,
-                //    CertificateId = message.CertificateId,
-                //    RejectReason = "Rejected by the registry"
-                //});
+                await context.Publish<CertificateFailedInRegistryEvent>(new CertificateFailedInRegistryEvent
+                {
+                    RegistryName = message.RegistryName,
+                    CertificateId = message.CertificateId,
+                    RejectReason = "Rejected by the registry"
+                });
                 return;
             }
 

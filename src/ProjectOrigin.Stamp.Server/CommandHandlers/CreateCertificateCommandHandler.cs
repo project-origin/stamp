@@ -46,6 +46,7 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
         //TODO: Set HashedAttributes
         //TODO: Config retries
         //TODO: config CertificateSentToRegistryEventHandler to not exceptions for retries
+        //TODO: Look for idempotency
 
         var cert = await _unitOfWork.CertificateRepository.Get(message.RegistryName, message.CertificateId);
 

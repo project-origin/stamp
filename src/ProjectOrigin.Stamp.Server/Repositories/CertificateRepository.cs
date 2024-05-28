@@ -12,7 +12,7 @@ public interface ICertificateRepository
 {
     Task Create(GranularCertificate certificate);
     Task<GranularCertificate?> Get(string registryName, Guid certificateId);
-    Task SetState(Guid certificateId, string registryName, IssuedState state);
+    Task SetState(Guid certificateId, string registryName, IssuedState state, string? rejectionReason = null);
 }
 
 public class CertificateRepository : ICertificateRepository
@@ -95,18 +95,20 @@ public class CertificateRepository : ICertificateRepository
         return certsDictionary.Values.FirstOrDefault();
     }
 
-    public async Task SetState(Guid certificateId, string registryName, IssuedState state)
+    public async Task SetState(Guid certificateId, string registryName, IssuedState state, string? rejectionReason = null)
     {
         var rowsChanged = await _connection.ExecuteAsync(
             @"UPDATE Certificates
-                SET issued_state = @state
+                SET issued_state = @state,
+                    rejection_reason = @rejectionReason 
                 WHERE id = @certificateId
                 AND registry_name = @registryName",
             new
             {
                 certificateId,
                 registryName,
-                state
+                state,
+                rejectionReason
             });
 
         if (rowsChanged != 1)

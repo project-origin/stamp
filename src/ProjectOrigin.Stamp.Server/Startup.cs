@@ -18,6 +18,7 @@ using OpenTelemetry.Trace;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using ProjectOrigin.Stamp.Server.BackgroundServices;
+using ProjectOrigin.Stamp.Server.CommandHandlers;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Database.Mapping;
 using ProjectOrigin.Stamp.Server.Database.Postgres;
@@ -25,6 +26,7 @@ using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Options;
 using ProjectOrigin.Stamp.Server.Serialization;
 using ProjectOrigin.Stamp.Server.Services.REST;
+using ProjectOrigin.Stamp.Server.EventHandlers;
 
 namespace ProjectOrigin.Stamp.Server;
 
@@ -112,6 +114,13 @@ public class Startup
         services.AddMassTransit(o =>
         {
             o.SetKebabCaseEndpointNameFormatter();
+
+            o.AddConsumer<CreateCertificateCommandHandler>();
+            o.AddConsumer<CertificateCreatedEventHandler>();
+            o.AddConsumer<CertificateFailedInRegistryEventHandler>();
+            o.AddConsumer<CertificateIssuedInRegistryEventHandler>();
+            o.AddConsumer<CertificateMarkedAsIssuedEventHandler>();
+            o.AddConsumer<CertificateSentToRegistryEventHandler>();
 
             o.ConfigureMassTransitTransport(_configuration.GetSection("MessageBroker").GetValid<MessageBrokerOptions>());
         });

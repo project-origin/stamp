@@ -81,4 +81,32 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
         queriedCert!.IssuedState.Should().Be(cert.IssuedState);
     }
 
+    [Fact]
+    public async Task Reject()
+    {
+        var cert = new GranularCertificate
+        {
+            EndDate = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            GridArea = "DK1",
+            ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" } },
+            HashedAttributes = new List<CertificateHashedAttribute>(),
+            Id = Guid.NewGuid(),
+            CertificateType = GranularCertificateType.Production,
+            StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            Quantity = 1234,
+            RegistryName = "Energinet.dk"
+        };
+
+        await _repository.Create(cert);
+
+        cert.Reject("TestReason");
+
+        await _repository.SetState(cert.Id, cert.RegistryName, cert.IssuedState, cert.RejectionReason);
+
+        var queriedCert = await _repository.Get(cert.RegistryName, cert.Id);
+
+        queriedCert.Should().NotBeNull();
+        queriedCert!.IssuedState.Should().Be(cert.IssuedState);
+        queriedCert.RejectionReason.Should().Be(cert.RejectionReason);
+    }
 }

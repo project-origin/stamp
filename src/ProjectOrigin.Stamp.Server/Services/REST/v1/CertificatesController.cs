@@ -56,7 +56,7 @@ public class CertificatesController : ControllerBase
             HashedAttributes = request.Certificate.HashedAttributes.MapToModel().ToList()
         };
 
-        await bus.Publish(cmd);
+        await bus.Send(cmd);
 
         return Accepted(new IssueCertificateResponse());
     }
