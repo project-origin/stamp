@@ -25,6 +25,21 @@ CREATE TABLE ClearTextAttributes (
         NOT VALID
 );
 
+CREATE TABLE HashedAttributes (
+    id uuid NOT NULL PRIMARY KEY,
+    attribute_key VARCHAR(256) NOT NULL,
+    attribute_value VARCHAR(512) NOT NULL,
+    salt bytea NOT NULL,
+    certificate_id uuid NOT NULL,
+    registry_name VARCHAR(64) NOT NULL,
+    UNIQUE (certificate_id, registry_name, attribute_key),
+    FOREIGN KEY (certificate_id, registry_name)
+        REFERENCES Certificates (Id, registry_name) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+);
+
 CREATE TABLE OutboxMessages (
     id uuid NOT NULL PRIMARY KEY,
     message_type VARCHAR(250) NOT NULL,

@@ -26,7 +26,6 @@ public class CertificateRepository : ICertificateRepository
 
     public async Task Create(GranularCertificate certificate)
     {
-        //TODO Set Hashed attributes
         await _connection.ExecuteAsync(
             @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area, issued_state, rejection_reason)
               VALUES (@id, @registryName, @certificateType, @quantity, @startDate, @endDate, @gridArea, @issuedState, @rejectionReason)",
@@ -57,20 +56,39 @@ public class CertificateRepository : ICertificateRepository
                     certificate.RegistryName
                 });
         }
+
+        foreach (var atr in certificate.HashedAttributes)
+        {
+            await _connection.ExecuteAsync(
+                @"INSERT INTO HashedAttributes(id, attribute_key, attribute_value, salt, certificate_id, registry_name)
+                  VALUES (@id, @key, @value, @salt, @certificateId, @registryName)",
+                new
+                {
+                    id = Guid.NewGuid(),
+                    atr.Key,
+                    atr.Value,
+                    atr.Salt,
+                    certificateId = certificate.Id,
+                    certificate.RegistryName
+                });
+        }
     }
 
     public async Task<GranularCertificate?> Get(string registryName, Guid certificateId)
     {
         var certsDictionary = new Dictionary<Guid, GranularCertificate>();
-        await _connection.QueryAsync<GranularCertificate?, CertificateClearTextAttribute?, GranularCertificate?>(
-            @"SELECT c.*, a.attribute_key as key, a.attribute_value as value
+        await _connection.QueryAsync<GranularCertificate?, CertificateClearTextAttribute?, CertificateHashedAttribute?, GranularCertificate?>(
+            @"SELECT c.*, a.attribute_key as key, a.attribute_value as value, ha.attribute_key as key, ha.attribute_value as value, ha.salt
               FROM certificates c
               LEFT JOIN ClearTextAttributes a
                 ON c.id = a.certificate_id
                 AND c.registry_name = a.registry_name
+              LEFT JOIN HashedAttributes ha
+                ON c.id = ha.certificate_id
+                AND c.registry_name = ha.registry_name
               WHERE c.id = @certificateId
                 AND c.registry_name = @registryName",
-            (cert, atr) =>
+            (cert, atrClear, atrHashed) =>
             {
                 if (cert == null) return null;
 
@@ -80,12 +98,15 @@ public class CertificateRepository : ICertificateRepository
                     certsDictionary.Add(cert.Id, cert);
                 }
 
-                if(atr != null)
-                    certificate.ClearTextAttributes.Add(atr.Key, atr.Value);
+                if(atrClear != null)
+                    certificate.ClearTextAttributes.Add(atrClear.Key, atrClear.Value);
+
+                if(atrHashed != null)
+                    certificate.HashedAttributes.Add(atrHashed);
 
                 return certificate;
             },
-            splitOn: "key",
+            splitOn: "key, key",
             param: new
             {
                 certificateId,

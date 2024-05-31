@@ -54,7 +54,8 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
             RandomR = message.RandomR,
             RecipientId = message.RecipientId,
             RegistryName = message.Registry,
-            WalletEndpointPosition = message.WalletEndpointPosition
+            WalletEndpointPosition = message.WalletEndpointPosition,
+            HashedAttributes = certificate.HashedAttributes
         };
         await _unitOfWork.OutboxMessageRepository.Create(new OutboxMessage
         {

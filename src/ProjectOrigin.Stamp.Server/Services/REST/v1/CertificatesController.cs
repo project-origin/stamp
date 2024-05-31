@@ -36,6 +36,11 @@ public class CertificatesController : ControllerBase
         if(request.Certificate.Start >= request.Certificate.End)
             return BadRequest("Start date must be before end date.");
 
+        var certificate = await unitOfWork.CertificateRepository.Get(request.RegistryName, request.Certificate.Id);
+
+        if (certificate != null)
+            return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists.");
+
         var recipient = await unitOfWork.RecipientRepository.Get(request.RecipientId);
 
         if (recipient == null)
@@ -43,7 +48,7 @@ public class CertificatesController : ControllerBase
 
         var cmd = new CreateCertificateCommand
         {
-            CertificateId = Guid.NewGuid(),
+            CertificateId = request.Certificate.Id,
             RegistryName = request.RegistryName,
             RecipientId = request.RecipientId,
             WalletEndpointReferencePublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
@@ -84,6 +89,11 @@ public record CreateCertificateRequest
 
 public record CertificateDto
 {
+    /// <summary>
+    /// The id of the certificate.
+    /// </summary>
+    public required Guid Id { get; init; }
+
     /// <summary>
     /// The type of certificate (production or consumption).
     /// </summary>

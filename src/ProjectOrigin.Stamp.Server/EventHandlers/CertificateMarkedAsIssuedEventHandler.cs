@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -8,6 +9,7 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Exceptions;
+using ProjectOrigin.Stamp.Server.Models;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -19,6 +21,7 @@ public record CertificateMarkedAsIssuedEvent
     public required uint WalletEndpointPosition { get; init; }
     public required uint Quantity { get; init; }
     public required byte[] RandomR { get; init; }
+    public required List<CertificateHashedAttribute> HashedAttributes { get; init; }
 }
 
 public class CertificateMarkedAsIssuedEventHandler : IConsumer<CertificateMarkedAsIssuedEvent>
@@ -48,28 +51,38 @@ public class CertificateMarkedAsIssuedEventHandler : IConsumer<CertificateMarked
         _logger.LogInformation("Sending slice to Wallet with url {WalletUrl} for certificate id {certificateId}.",
             recipient.WalletEndpointReferenceEndpoint, message.CertificateId);
 
-        var request = new WalletReceiveRequest()
+        if (recipient.WalletEndpointReferenceVersion == 1)
         {
-            CertificateId = new FederatedStreamId()
+            var request = new WalletReceiveRequest()
             {
-                Registry = message.RegistryName,
-                StreamId = message.CertificateId,
-            },
-            Position = message.WalletEndpointPosition,
-            PublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
-            Quantity = message.Quantity,
-            RandomR = message.RandomR,
-            HashedAttributes = new List<HashedAttribute>()
-        };
+                CertificateId = new FederatedStreamId()
+                {
+                    Registry = message.RegistryName,
+                    StreamId = message.CertificateId,
+                },
+                Position = message.WalletEndpointPosition,
+                PublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
+                Quantity = message.Quantity,
+                RandomR = message.RandomR,
+                HashedAttributes = message.HashedAttributes.Select(ha => new HashedAttribute()
+                {
+                    Key = ha.Key,
+                    Value = ha.Value,
+                    Salt = ha.Salt
+                })
+            };
 
-        using var client = _httpClientFactory.CreateClient();
-        var requestJson = JsonSerializer.Serialize(request);
-        var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+            using var client = _httpClientFactory.CreateClient();
+            var requestJson = JsonSerializer.Serialize(request);
+            var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-        var res = await client.PostAsync(recipient.WalletEndpointReferenceEndpoint, content);
-        res.EnsureSuccessStatusCode();
+            var res = await client.PostAsync(recipient.WalletEndpointReferenceEndpoint, content);
+            res.EnsureSuccessStatusCode();
 
-        _logger.LogInformation("Slice sent to Wallet for certificate id {certificateId}.", message.CertificateId);
+            _logger.LogInformation("Slice sent to Wallet for certificate id {certificateId}.", message.CertificateId);
+        }
+        else
+            throw new WalletException($"Unsupported WalletEndpointReference version: {recipient.WalletEndpointReferenceVersion}");
     }
 }
 

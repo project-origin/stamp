@@ -25,6 +25,9 @@ public class RecipientController : ControllerBase
         [FromServices] IUnitOfWork unitOfWork,
         [FromBody] CreateRecipientRequest request)
     {
+        if(request.WalletEndpointReference.Version != 1)
+            return BadRequest("We currently only support Wallet endpoint reference version 1.");
+
         var recipient = new Recipient
         {
             Id = Guid.NewGuid(),

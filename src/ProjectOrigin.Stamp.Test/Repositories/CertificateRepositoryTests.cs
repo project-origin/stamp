@@ -26,7 +26,10 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
             EndDate = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
             GridArea = "DK1",
             ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" }  },
-            HashedAttributes = new List<CertificateHashedAttribute>(),
+            HashedAttributes =
+            [
+                new () { Key = "AssetId", Value = "1234", Salt = new byte[1024] }
+            ],
             Id = Guid.NewGuid(),
             CertificateType = GranularCertificateType.Production,
             StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
@@ -51,6 +54,7 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
         queriedCert.CertificateType.Should().Be(cert.CertificateType);
         queriedCert.IssuedState.Should().Be(cert.IssuedState);
         queriedCert.RejectionReason.Should().Be(cert.RejectionReason);
+        queriedCert.HashedAttributes.Should().BeEquivalentTo(cert.HashedAttributes);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
 using MassTransit;
@@ -52,20 +53,11 @@ public class CertificateCreatedEventHandler : IConsumer<CertificateCreatedEvent>
         var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(message.WalletEndpointReferencePublicKey, endpointPosition.Value, message.GridArea);
 
         var commitment = new SecretCommitmentInfo(message.Quantity);
-        IssuedEvent issueEvent;
 
-        if (message.CertificateType == GranularCertificateType.Production)
-        {
-            var techCode = message.ClearTextAttributes[Helpers.Registry.Attributes.TechCode];
-            var fuelCode = message.ClearTextAttributes[Helpers.Registry.Attributes.FuelCode];
-            //TODO Set assetId correct
-            issueEvent = Helpers.Registry.CreateIssuedEventForProduction(message.RegistryName, message.CertificateId, PeriodHelper.ToDateInterval(message.Start, message.End), message.GridArea, "1234", techCode, fuelCode, commitment, ownerPublicKey);
-        }
-        else
-        {
-            //TODO Set assetId correct
-            issueEvent = Helpers.Registry.CreateIssuedEventForConsumption(message.RegistryName, message.CertificateId, PeriodHelper.ToDateInterval(message.Start, message.End), message.GridArea, "1234", commitment, ownerPublicKey);
-        }
+        IssuedEvent issueEvent = Helpers.Registry.BuildIssuedEvent(message.RegistryName, message.CertificateId,
+            PeriodHelper.ToDateInterval(message.Start, message.End), message.GridArea,
+            commitment, ownerPublicKey, message.CertificateType.MapToRegistryModel(), message.ClearTextAttributes,
+            message.HashedAttributes.ToList());
 
         using var channel = GrpcChannel.ForAddress(_registryOptions.GetRegistryUrl(message.RegistryName));
         var client = new RegistryService.RegistryServiceClient(channel);

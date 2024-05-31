@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
 using Google.Protobuf;
 using ProjectOrigin.Electricity.V1;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using ProjectOrigin.PedersenCommitment;
 using ProjectOrigin.Registry.V1;
+using ProjectOrigin.Stamp.Server.Models;
+using GranularCertificateType = ProjectOrigin.Electricity.V1.GranularCertificateType;
+using PublicKey = ProjectOrigin.Electricity.V1.PublicKey;
 
 namespace ProjectOrigin.Stamp.Server.Helpers;
 
@@ -17,24 +22,9 @@ public static class Registry
         public const string FuelCode = "FuelCode";
     }
 
-    public static IssuedEvent CreateIssuedEventForProduction(string registryName, Guid certificateId, DateInterval period, string gridArea, string assetId, string techCode, string fuelCode, SecretCommitmentInfo commitment, IPublicKey ownerPublicKey)
-    {
-        var issuedEvent = BuildIssuedEvent(registryName, certificateId, period, gridArea, assetId, commitment,
-            ownerPublicKey, GranularCertificateType.Production);
-
-        issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.TechCode, Value = techCode });
-        issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.FuelCode, Value = fuelCode });
-
-        return issuedEvent;
-    }
-    public static IssuedEvent CreateIssuedEventForConsumption(string registryName, Guid certificateId, DateInterval period, string gridArea, string assetId, SecretCommitmentInfo commitment, IPublicKey ownerPublicKey)
-    {
-        return BuildIssuedEvent(registryName, certificateId, period, gridArea, assetId, commitment, ownerPublicKey, GranularCertificateType.Consumption);
-    }
-
-    private static IssuedEvent BuildIssuedEvent(string registryName, Guid certificateId, DateInterval period,
-        string gridArea, string assetId, SecretCommitmentInfo commitment, IPublicKey ownerPublicKey,
-        GranularCertificateType type)
+    public static IssuedEvent BuildIssuedEvent(string registryName, Guid certificateId, DateInterval period,
+        string gridArea, SecretCommitmentInfo commitment, IPublicKey ownerPublicKey,
+        GranularCertificateType type, Dictionary<string, string> attributes, List<CertificateHashedAttribute> hashedAttributes)
     {
         var id = new Common.V1.FederatedStreamId
         {
@@ -60,8 +50,16 @@ public static class Registry
             },
             //TODO: AssetIdHash not set. Added as non-hidden attribute instead. See https://github.com/project-origin/registry/issues/129 for more details
         };
+        foreach (var attr in attributes)
+        {
+            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = attr.Key, Value = attr.Value });
+        }
 
-        issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.AssetId, Value = assetId });
+        foreach (var attr in hashedAttributes)
+        {
+            var str = attr.Key + attr.Value + certificateId + Convert.ToHexString(attr.Salt);
+            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.AssetId, Value = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str))) });
+        }
 
         return issuedEvent;
     }
@@ -90,4 +88,12 @@ public static class Registry
 
     public static string ToShaId(this Transaction transaction) =>
          Convert.ToBase64String(SHA256.HashData(transaction.ToByteArray()));
+
+    public static GranularCertificateType MapToRegistryModel(this Models.GranularCertificateType type) =>
+        type switch
+        {
+            Models.GranularCertificateType.Production => GranularCertificateType.Production,
+            Models.GranularCertificateType.Consumption => GranularCertificateType.Consumption,
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, $"GranularCertificateType {type} not supported")
+        };
 }
