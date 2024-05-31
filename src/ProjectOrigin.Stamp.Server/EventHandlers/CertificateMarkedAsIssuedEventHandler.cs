@@ -7,9 +7,11 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Exceptions;
 using ProjectOrigin.Stamp.Server.Models;
+using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -83,6 +85,24 @@ public class CertificateMarkedAsIssuedEventHandler : IConsumer<CertificateMarked
         }
         else
             throw new WalletException($"Unsupported WalletEndpointReference version: {recipient.WalletEndpointReferenceVersion}");
+    }
+}
+
+public class CertificateMarkedAsIssuedEventHandlerDefinition : ConsumerDefinition<CertificateMarkedAsIssuedEventHandler>
+{
+    private readonly RetryOptions _retryOptions;
+
+    public CertificateMarkedAsIssuedEventHandlerDefinition(IOptions<RetryOptions> options)
+    {
+        _retryOptions = options.Value;
+    }
+
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<CertificateMarkedAsIssuedEventHandler> consumerConfigurator,
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r
+            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
     }
 }
 

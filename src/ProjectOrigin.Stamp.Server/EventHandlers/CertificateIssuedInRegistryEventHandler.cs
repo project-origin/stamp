@@ -6,6 +6,8 @@ using System.Text.Json;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Models;
+using Microsoft.Extensions.Options;
+using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -67,5 +69,23 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
         _unitOfWork.Commit();
 
         _logger.LogInformation("Certificate with registry {message.RegistryName} and certificateId {message.CertificateId} issued.", message.Registry, message.CertificateId);
+    }
+}
+
+public class CertificateIssuedInRegistryEventHandlerDefinition : ConsumerDefinition<CertificateIssuedInRegistryEventHandler>
+{
+    private readonly RetryOptions _retryOptions;
+
+    public CertificateIssuedInRegistryEventHandlerDefinition(IOptions<RetryOptions> options)
+    {
+        _retryOptions = options.Value;
+    }
+
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<CertificateIssuedInRegistryEventHandler> consumerConfigurator,
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r
+            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
     }
 }

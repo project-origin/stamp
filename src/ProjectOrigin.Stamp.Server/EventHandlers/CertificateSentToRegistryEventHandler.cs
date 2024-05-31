@@ -3,8 +3,10 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ProjectOrigin.Registry.V1;
 using ProjectOrigin.Stamp.Server.Exceptions;
+using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -85,3 +87,22 @@ public class RegistryTransactionStillProcessingException : Exception
     {
     }
 }
+
+public class CertificateSentToRegistryEventHandlerDefinition : ConsumerDefinition<CertificateSentToRegistryEventHandler>
+{
+    private readonly RetryOptions _retryOptions;
+
+    public CertificateSentToRegistryEventHandlerDefinition(IOptions<RetryOptions> options)
+    {
+        _retryOptions = options.Value;
+    }
+
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<CertificateSentToRegistryEventHandler> consumerConfigurator,
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r
+            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
+    }
+}
+

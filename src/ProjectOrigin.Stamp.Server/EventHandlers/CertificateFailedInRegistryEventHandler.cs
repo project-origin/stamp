@@ -2,7 +2,9 @@ using System;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ProjectOrigin.Stamp.Server.Database;
+using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -47,5 +49,23 @@ public class CertificateFailedInRegistryEventHandler : IConsumer<CertificateFail
         await _unitOfWork.CertificateRepository.SetState(message.CertificateId, message.RegistryName, certificate.IssuedState, message.RejectReason);
         _unitOfWork.Commit();
         _logger.LogInformation("Certificate with certificateId {certificateId} and registry name {registryName} rejected", message.CertificateId, message.RegistryName);
+    }
+}
+
+public class CertificateFailedInRegistryEventHandlerDefinition : ConsumerDefinition<CertificateFailedInRegistryEventHandler>
+{
+    private readonly RetryOptions _retryOptions;
+
+    public CertificateFailedInRegistryEventHandlerDefinition(IOptions<RetryOptions> options)
+    {
+        _retryOptions = options.Value;
+    }
+
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<CertificateFailedInRegistryEventHandler> consumerConfigurator,
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r
+            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
     }
 }

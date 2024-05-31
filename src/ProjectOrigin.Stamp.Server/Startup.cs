@@ -59,11 +59,6 @@ public class Startup
             o.DocumentFilter<PathBaseDocumentFilter>();
         });
 
-        services.AddOptions<RegistryOptions>()
-            .Bind(_configuration)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
         services.AddOptions<RestApiOptions>()
             .Bind(_configuration.GetSection("RestApiOptions"))
             .ValidateDataAnnotations()
@@ -71,6 +66,11 @@ public class Startup
 
         services.AddOptions<OtlpOptions>()
             .BindConfiguration(OtlpOptions.Prefix)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<RetryOptions>()
+            .BindConfiguration(RetryOptions.Retry)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -115,12 +115,12 @@ public class Startup
         {
             o.SetKebabCaseEndpointNameFormatter();
 
-            o.AddConsumer<CreateCertificateCommandHandler>();
-            o.AddConsumer<CertificateCreatedEventHandler>();
-            o.AddConsumer<CertificateFailedInRegistryEventHandler>();
-            o.AddConsumer<CertificateIssuedInRegistryEventHandler>();
-            o.AddConsumer<CertificateMarkedAsIssuedEventHandler>();
-            o.AddConsumer<CertificateSentToRegistryEventHandler>();
+            o.AddConsumer<CreateCertificateCommandHandler, CreateCertificateCommandHandlerDefinition>();
+            o.AddConsumer<CertificateCreatedEventHandler, CertificateCreatedEventHandlerDefinition>();
+            o.AddConsumer<CertificateFailedInRegistryEventHandler, CertificateFailedInRegistryEventHandlerDefinition>();
+            o.AddConsumer<CertificateIssuedInRegistryEventHandler, CertificateIssuedInRegistryEventHandlerDefinition>();
+            o.AddConsumer<CertificateMarkedAsIssuedEventHandler, CertificateMarkedAsIssuedEventHandlerDefinition>();
+            o.AddConsumer<CertificateSentToRegistryEventHandler, CertificateSentToRegistryEventHandlerDefinition>();
 
             o.ConfigureMassTransitTransport(_configuration.GetSection("MessageBroker").GetValid<MessageBrokerOptions>());
         });

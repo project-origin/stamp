@@ -8,6 +8,8 @@ using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.Extensions;
+using Microsoft.Extensions.Options;
+using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.CommandHandlers;
 
@@ -41,9 +43,6 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
     {
         _logger.LogInformation("Creating certificate with id {certificateId}.", context.Message.CertificateId);
         var message = context.Message;
-        //TODO: Get from db and if not present: save to db (if GSRN is available)
-        //TODO: Skal assetId med i dto?
-        //TODO: Set HashedAttributes
         //TODO: Config retries
         //TODO: config CertificateSentToRegistryEventHandler to not exceptions for retries
         //TODO: Look for idempotency
@@ -62,7 +61,7 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
                 EndDate = message.End,
                 GridArea = message.GridArea,
                 ClearTextAttributes = message.ClearTextAttributes,
-                HashedAttributes = new List<CertificateHashedAttribute>() //TODO: msg.HashedAttributes
+                HashedAttributes = message.HashedAttributes
             };
 
             await _unitOfWork.CertificateRepository.Create(cert);
@@ -90,5 +89,23 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
             MessageType = typeof(CertificateCreatedEvent).ToString()
         });
         _unitOfWork.Commit();
+    }
+}
+
+public class CreateCertificateCommandHandlerDefinition : ConsumerDefinition<CreateCertificateCommandHandler>
+{
+    private readonly RetryOptions _retryOptions;
+
+    public CreateCertificateCommandHandlerDefinition(IOptions<RetryOptions> options)
+    {
+        _retryOptions = options.Value;
+    }
+
+    protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
+        IConsumerConfigurator<CreateCertificateCommandHandler> consumerConfigurator,
+        IRegistrationContext context)
+    {
+        endpointConfigurator.UseMessageRetry(r => r
+            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
     }
 }
