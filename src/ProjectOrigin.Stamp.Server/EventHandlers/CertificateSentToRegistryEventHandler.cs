@@ -102,7 +102,12 @@ public class CertificateSentToRegistryEventHandlerDefinition : ConsumerDefinitio
         IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r
-            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3)));
+            .Interval(_retryOptions.RegistryTransactionStillProcessingRetryCount, TimeSpan.FromSeconds(1))
+            .Handle(typeof(RegistryTransactionStillProcessingException)));
+
+        endpointConfigurator.UseMessageRetry(r => r
+            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3))
+            .Ignore(typeof(RegistryTransactionStillProcessingException)));
     }
 }
 

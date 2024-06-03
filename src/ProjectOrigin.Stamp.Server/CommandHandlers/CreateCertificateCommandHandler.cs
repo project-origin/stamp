@@ -43,8 +43,6 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
     {
         _logger.LogInformation("Creating certificate with id {certificateId}.", context.Message.CertificateId);
         var message = context.Message;
-        //TODO: Config retries
-        //TODO: config CertificateSentToRegistryEventHandler to not exceptions for retries
         //TODO: Look for idempotency
 
         var cert = await _unitOfWork.CertificateRepository.Get(message.RegistryName, message.CertificateId);
