@@ -29,17 +29,17 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
         var privateKey = new Secp256k1Algorithm().GenerateNewPrivateKey();
         var payloadObj = new CertificateCreatedEvent
         {
-            CertificateType = GranularCertificateType.Production,
             CertificateId = Guid.NewGuid(),
-            Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
-            GridArea = "DK1",
-            ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
-            HashedAttributes = new List<CertificateHashedAttribute>(),
-            Quantity = 1234,
-            RegistryName = "Energinet.dk",
-            WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
-            RecipientId = Guid.NewGuid()
+            //CertificateType = GranularCertificateType.Production,
+            //Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            //End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            //GridArea = "DK1",
+            //ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
+            //HashedAttributes = new List<CertificateHashedAttribute>(),
+            //Quantity = 1234,
+            //RegistryName = "Energinet.dk",
+            //WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
+            //RecipientId = Guid.NewGuid()
         };
         var message = new OutboxMessage
         {

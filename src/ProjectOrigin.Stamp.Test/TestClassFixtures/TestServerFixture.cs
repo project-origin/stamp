@@ -22,7 +22,12 @@ using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using ProjectOrigin.Stamp.Test.TestClassFixtures.TestServerHelpers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using ProjectOrigin.Stamp.Server.Options;
 using Xunit.Abstractions;
 
 namespace ProjectOrigin.Stamp.Test.TestClassFixtures
@@ -41,6 +46,20 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
         public event LogMessage? LoggedMessage;
 
         public string PostgresConnectionString { get; set; } = "http://foo";
+
+        public RetryOptions RetryOptions { get; set; } = new()
+        {
+            DefaultFirstLevelRetryCount = 5,
+            RegistryTransactionStillProcessingRetryCount = 100
+        };
+
+        public RabbitMqOptions RabbitMqOptions { get; set; } = new()
+        {
+            Host = "localhost",
+            Port = 5672,
+            Username = "guest",
+            Password = "quest"
+        };
 
         public TestServerFixture()
         {
@@ -76,8 +95,14 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
                 {
                     {"Otlp:Enabled", "false"},
                     {"RestApiOptions:PathBase", "/stamp-api"},
-                    {"MessageBroker:Type", "InMemory"},
-                    {"ConnectionStrings:Database", PostgresConnectionString}
+                    {"MessageBroker:Type", "RabbitMq"},
+                    {"MessageBroker:RabbitMq:Host", RabbitMqOptions.Host},
+                    {"MessageBroker:RabbitMq:Port", RabbitMqOptions.Port.ToString()},
+                    {"MessageBroker:RabbitMq:Username", RabbitMqOptions.Username},
+                    {"MessageBroker:RabbitMq:Password", RabbitMqOptions.Password},
+                    {"ConnectionStrings:Database", PostgresConnectionString},
+                    {"Retry:DefaultFirstLevelRetryCount", RetryOptions.DefaultFirstLevelRetryCount.ToString()},
+                    {"Retry:RegistryTransactionStillProcessingRetryCount", RetryOptions.RegistryTransactionStillProcessingRetryCount.ToString()}
                 });
 
                 var builder = new HostBuilder();
@@ -126,6 +151,7 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
             var client = _server!.CreateClient();
             return client;
         }
+
 
         protected virtual void Dispose(bool disposing)
         {

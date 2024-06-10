@@ -1,8 +1,12 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Security.Claims;
 using System.Text;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
+using Microsoft.IdentityModel.Tokens;
 using ProjectOrigin.Stamp.Server.Options;
 using Testcontainers.PostgreSql;
 
@@ -70,6 +74,31 @@ public class ProjectOriginStack : RegistryFixture
     };
 
     public string WalletUrl => new UriBuilder("http", walletContainer.Value.Hostname, walletContainer.Value.GetMappedPublicPort(WalletHttpPort), PathBase).Uri.ToString();
+
+    public string WalletReceiveSliceUrl => WalletUrl + "v1/slices";
+
+    public HttpClient CreateWalletClient(string subject)
+    {
+        var client = new HttpClient();
+        client.BaseAddress = new Uri(WalletUrl);
+        var authentication = new AuthenticationHeaderValue("Bearer", GenerateToken(subject));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authentication.Scheme, authentication.Parameter);
+
+        return client;
+    }
+
+    private string GenerateToken(string subject)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new[] { new Claim("sub", subject) }),
+            Expires = DateTime.UtcNow.AddDays(7),
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        return tokenHandler.WriteToken(token);
+    }
 
     public override async Task InitializeAsync()
     {

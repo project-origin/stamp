@@ -23,7 +23,7 @@ public class RegistryFixture : IAsyncLifetime
 
     private readonly IContainer registryContainer;
     private readonly IContainer verifierContainer;
-    private readonly RabbitMqContainer rabbitMqContainer;
+    private readonly Testcontainers.RabbitMq.RabbitMqContainer rabbitMqContainer;
     protected readonly INetwork Network;
     private readonly IFutureDockerImage rabbitMqImage;
 

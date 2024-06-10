@@ -27,7 +27,8 @@ public class OutboxPollingWorker : BackgroundService
         {
             using var scope = _serviceProvider.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var bus = scope.ServiceProvider.GetRequiredService<IBus>();
+            var bus = scope.ServiceProvider.GetRequiredService<IBusControl>();
+            await bus.StartAsync(stoppingToken);
 
             var msg = await unitOfWork.OutboxMessageRepository.GetFirstNonProcessed();
 
@@ -35,12 +36,18 @@ public class OutboxPollingWorker : BackgroundService
             {
                 try
                 {
+                    _logger.LogInformation("Processing outbox message {msgId}.", msg.Id);
                     var type = Type.GetType($"{msg.MessageType}, ProjectOrigin.Stamp.Server");
                     var loadedObject = JsonSerializer.Deserialize(msg.JsonPayload, type!);
 
-                    await bus.Publish(loadedObject!, stoppingToken);
-                    await unitOfWork.OutboxMessageRepository.Delete(msg.Id);
+                    var endpoint = await bus.GetSendEndpoint(new Uri("queue:certificate-created-event-handler"));
+
+                    await endpoint.Send(loadedObject!, stoppingToken);
+
+                    //await bus.Publish(loadedObject!, stoppingToken);
+                    //await unitOfWork.OutboxMessageRepository.Delete(msg.Id);
                     unitOfWork.Commit();
+                    await Task.Delay(1000, stoppingToken);
                 }
                 catch (Exception ex)
                 {

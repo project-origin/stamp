@@ -72,7 +72,7 @@ public static class IConfigurationExtensions
         switch (logOutputFormat)
         {
             case "json":
-                loggerConfiguration = loggerConfiguration.WriteTo.Console(new JsonFormatter());
+                loggerConfiguration = loggerConfiguration.WriteTo.File("C:\\temp\\log.txt");
                 break;
 
             case "text":

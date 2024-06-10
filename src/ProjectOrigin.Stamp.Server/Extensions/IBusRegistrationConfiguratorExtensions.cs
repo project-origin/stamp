@@ -1,5 +1,6 @@
 using System;
 using MassTransit;
+using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Options;
 using ProjectOrigin.Stamp.Server.Serialization;
 
@@ -23,7 +24,11 @@ public static class IBusRegistrationConfiguratorExtensions
             case MessageBrokerType.RabbitMq:
                 busConfig.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.ConfigureDefaults(context);
+                    //cfg.ConfigureDefaults(context);
+                    cfg.ConfigureEndpoints(context);
+
+                    //cfg.ReceiveEndpoint("certificate-created-event-handler2",
+                    //    e => e.ConfigureConsumer<CertificateCreatedEventHandler>(context));
 
                     var rabbitOption = options.RabbitMq!;
                     cfg.Host(rabbitOption.Host, rabbitOption.Port, "/", h =>

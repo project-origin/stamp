@@ -16,19 +16,19 @@ using GranularCertificateType = ProjectOrigin.Stamp.Server.Models.GranularCertif
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
-public record CertificateCreatedEvent
+public class CertificateCreatedEvent
 {
     public required Guid CertificateId { get; init; }
-    public required string RegistryName { get; init; }
-    public required byte[] WalletEndpointReferencePublicKey { get; init; }
-    public required Guid RecipientId { get; init; }
-    public required GranularCertificateType CertificateType { get; init; }
-    public required uint Quantity { get; init; }
-    public required long Start { get; init; }
-    public required long End { get; init; }
-    public required string GridArea { get; init; }
-    public required Dictionary<string, string> ClearTextAttributes { get; init; }
-    public required IEnumerable<CertificateHashedAttribute> HashedAttributes { get; init; }
+    //public required string RegistryName { get; init; }
+    //public required byte[] WalletEndpointReferencePublicKey { get; init; }
+    //public required Guid RecipientId { get; init; }
+    //public required GranularCertificateType CertificateType { get; init; }
+    //public required uint Quantity { get; init; }
+    //public required long Start { get; init; }
+    //public required long End { get; init; }
+    //public required string GridArea { get; init; }
+    //public required Dictionary<string, string> ClearTextAttributes { get; init; }
+    //public required IEnumerable<CertificateHashedAttribute> HashedAttributes { get; init; }
 }
 
 public class CertificateCreatedEventHandler : IConsumer<CertificateCreatedEvent>
@@ -46,37 +46,39 @@ public class CertificateCreatedEventHandler : IConsumer<CertificateCreatedEvent>
     public async Task Consume(ConsumeContext<CertificateCreatedEvent> context)
     {
         var message = context.Message;
-        var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(message.Start);
-        if (!endpointPosition.HasValue)
-            throw new WalletException($"Cannot determine wallet endpoint position for certificate with id {message.CertificateId}");
 
-        var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(message.WalletEndpointReferencePublicKey, endpointPosition.Value, message.GridArea);
+        //var message = context.Message;
+        //var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(message.Start);
+        //if (!endpointPosition.HasValue)
+        //    throw new WalletException($"Cannot determine wallet endpoint position for certificate with id {message.CertificateId}");
 
-        var commitment = new SecretCommitmentInfo(message.Quantity);
+        //var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(message.WalletEndpointReferencePublicKey, endpointPosition.Value, message.GridArea);
 
-        IssuedEvent issueEvent = Helpers.Registry.BuildIssuedEvent(message.RegistryName, message.CertificateId,
-            PeriodHelper.ToDateInterval(message.Start, message.End), message.GridArea,
-            commitment, ownerPublicKey, message.CertificateType.MapToRegistryModel(), message.ClearTextAttributes,
-            message.HashedAttributes.ToList());
+        //var commitment = new SecretCommitmentInfo(message.Quantity);
 
-        using var channel = GrpcChannel.ForAddress(_registryOptions.GetRegistryUrl(message.RegistryName));
-        var client = new RegistryService.RegistryServiceClient(channel);
+        //IssuedEvent issueEvent = Helpers.Registry.BuildIssuedEvent(message.RegistryName, message.CertificateId,
+        //    PeriodHelper.ToDateInterval(message.Start, message.End), message.GridArea,
+        //    commitment, ownerPublicKey, message.CertificateType.MapToRegistryModel(), message.ClearTextAttributes,
+        //    message.HashedAttributes.ToList());
 
-        var request = new SendTransactionsRequest();
-        var transaction = issueEvent.CreateTransaction(issuerKey);
-        request.Transactions.Add(transaction);
+        //using var channel = GrpcChannel.ForAddress(_registryOptions.GetRegistryUrl(message.RegistryName));
+        //var client = new RegistryService.RegistryServiceClient(channel);
 
-        await client.SendTransactionsAsync(request);
+        //var request = new SendTransactionsRequest();
+        //var transaction = issueEvent.CreateTransaction(issuerKey);
+        //request.Transactions.Add(transaction);
 
-        await context.Publish<CertificateSentToRegistryEvent>(new CertificateSentToRegistryEvent
-        {
-            ShaId = transaction.ToShaId(),
-            CertificateId = message.CertificateId,
-            RegistryName = message.RegistryName,
-            RecipientId = message.RecipientId,
-            WalletEndpointPosition = endpointPosition.Value,
-            RandomR = commitment.BlindingValue.ToArray()
-        });
+        //await client.SendTransactionsAsync(request);
+
+        //await context.Publish<CertificateSentToRegistryEvent>(new CertificateSentToRegistryEvent
+        //{
+        //    ShaId = transaction.ToShaId(),
+        //    CertificateId = message.CertificateId,
+        //    RegistryName = message.RegistryName,
+        //    RecipientId = message.RecipientId,
+        //    WalletEndpointPosition = endpointPosition.Value,
+        //    RandomR = commitment.BlindingValue.ToArray()
+        //});
     }
 }
 

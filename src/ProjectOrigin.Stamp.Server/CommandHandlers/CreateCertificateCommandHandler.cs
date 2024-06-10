@@ -43,7 +43,6 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
     {
         _logger.LogInformation("Creating certificate with id {certificateId}.", context.Message.CertificateId);
         var message = context.Message;
-        //TODO: Look for idempotency
 
         var cert = await _unitOfWork.CertificateRepository.Get(message.RegistryName, message.CertificateId);
 
@@ -67,17 +66,17 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
 
         var payloadObj = new CertificateCreatedEvent
         {
-            CertificateType = cert.CertificateType,
             CertificateId = cert.Id,
-            Start = cert.StartDate,
-            End = cert.EndDate,
-            GridArea = cert.GridArea,
-            ClearTextAttributes = cert.ClearTextAttributes,
-            HashedAttributes = cert.HashedAttributes,
-            Quantity = cert.Quantity,
-            RegistryName = message.RegistryName,
-            WalletEndpointReferencePublicKey = message.WalletEndpointReferencePublicKey,
-            RecipientId = message.RecipientId
+            //CertificateType = cert.CertificateType,
+            //Start = cert.StartDate,
+            //End = cert.EndDate,
+            //GridArea = cert.GridArea,
+            //ClearTextAttributes = cert.ClearTextAttributes,
+            //HashedAttributes = cert.HashedAttributes,
+            //Quantity = cert.Quantity,
+            //RegistryName = message.RegistryName,
+            //WalletEndpointReferencePublicKey = message.WalletEndpointReferencePublicKey,
+            //RecipientId = message.RecipientId
         };
         await _unitOfWork.OutboxMessageRepository.Create(new OutboxMessage
         {
