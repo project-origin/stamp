@@ -44,24 +44,23 @@ public class OutboxPollingWorkerTests
         var payloadObj = new CertificateCreatedEvent
         {
             CertificateId = Guid.NewGuid(),
-            //CertificateType = GranularCertificateType.Production,
-            //Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            //End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
-            //GridArea = "DK1",
-            //ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
-            //HashedAttributes = new List<CertificateHashedAttribute>(),
-            //Quantity = 1234,
-            //RegistryName = "Energinet.dk",
-            //WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
-            //RecipientId = Guid.NewGuid()
+            CertificateType = GranularCertificateType.Production,
+            Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            GridArea = "DK1",
+            ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
+            HashedAttributes = new List<CertificateHashedAttribute>(),
+            Quantity = 1234,
+            RegistryName = "Energinet.dk",
+            WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
+            RecipientId = Guid.NewGuid()
         };
         var message = new OutboxMessage
         {
             Created = DateTimeOffset.Now.ToUtcTime(),
             JsonPayload = JsonSerializer.Serialize(payloadObj),
             MessageType = typeof(CertificateCreatedEvent).ToString(),
-            Id = Guid.NewGuid(),
-            Processed = false
+            Id = Guid.NewGuid()
         };
         using var tokenSource = new CancellationTokenSource();
         outboxRepositoryMock.GetFirstNonProcessed().Returns(message);

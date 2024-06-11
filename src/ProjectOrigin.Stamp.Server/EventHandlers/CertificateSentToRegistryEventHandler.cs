@@ -1,12 +1,14 @@
 using System;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Grpc.Net.Client;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ProjectOrigin.Registry.V1;
 using ProjectOrigin.Stamp.Server.Exceptions;
 using ProjectOrigin.Stamp.Server.Options;
+using RegistryOptions = ProjectOrigin.Stamp.Server.Options.RegistryOptions;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
@@ -22,13 +24,13 @@ public record CertificateSentToRegistryEvent
 
 public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentToRegistryEvent>
 {
-    private readonly RegistryService.RegistryServiceClient _client;
     private readonly ILogger<CertificateSentToRegistryEventHandler> _logger;
+    private readonly RegistryOptions _registryOptions;
 
-    public CertificateSentToRegistryEventHandler(RegistryService.RegistryServiceClient client, ILogger<CertificateSentToRegistryEventHandler> logger)
+    public CertificateSentToRegistryEventHandler(ILogger<CertificateSentToRegistryEventHandler> logger, IOptions<RegistryOptions> registryOptions)
     {
-        _client = client;
         _logger = logger;
+        _registryOptions = registryOptions.Value;
     }
 
     public async Task Consume(ConsumeContext<CertificateSentToRegistryEvent> context)
@@ -38,7 +40,9 @@ public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentTo
 
         try
         {
-            var status = await _client.GetTransactionStatusAsync(statusRequest);
+            using var channel = GrpcChannel.ForAddress(_registryOptions.GetRegistryUrl(message.RegistryName));
+            var client = new RegistryService.RegistryServiceClient(channel);
+            var status = await client.GetTransactionStatusAsync(statusRequest);
 
             if (status.Status == TransactionState.Committed)
             {

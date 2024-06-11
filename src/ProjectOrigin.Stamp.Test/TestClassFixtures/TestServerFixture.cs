@@ -29,6 +29,8 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using ProjectOrigin.Stamp.Server.Options;
 using Xunit.Abstractions;
+using ProjectOrigin.HierarchicalDeterministicKeys;
+using System.Text;
 
 namespace ProjectOrigin.Stamp.Test.TestClassFixtures
 {
@@ -61,6 +63,12 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
             Password = "quest"
         };
 
+        public RegistryOptions RegistryOptions { get; set; } = new()
+        {
+            RegistryUrls = new Dictionary<string, string>(),
+            IssuerPrivateKeyPems = new Dictionary<string, byte[]>()
+        };
+
         public TestServerFixture()
         {
             LoggerFactory = new LoggerFactory();
@@ -91,7 +99,7 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
         {
             if (_host == null)
             {
-                ConfigureHostConfiguration(new Dictionary<string, string?>
+                var envVariables = new Dictionary<string, string?>
                 {
                     {"Otlp:Enabled", "false"},
                     {"RestApiOptions:PathBase", "/stamp-api"},
@@ -103,7 +111,19 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
                     {"ConnectionStrings:Database", PostgresConnectionString},
                     {"Retry:DefaultFirstLevelRetryCount", RetryOptions.DefaultFirstLevelRetryCount.ToString()},
                     {"Retry:RegistryTransactionStillProcessingRetryCount", RetryOptions.RegistryTransactionStillProcessingRetryCount.ToString()}
-                });
+                };
+
+                foreach (var reg in RegistryOptions.RegistryUrls)
+                {
+                    envVariables.Add($"Registry:RegistryUrls:{reg.Key}", reg.Value);
+                }
+
+                foreach (var pem in RegistryOptions.IssuerPrivateKeyPems)
+                {
+                    envVariables.Add($"Registry:IssuerPrivateKeyPems:{pem.Key}", Convert.ToBase64String(pem.Value));
+                }
+
+                ConfigureHostConfiguration(envVariables);
 
                 var builder = new HostBuilder();
 

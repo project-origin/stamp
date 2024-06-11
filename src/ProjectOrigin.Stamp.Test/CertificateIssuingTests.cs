@@ -21,6 +21,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         _poStack = poStack;
         fixture.PostgresConnectionString = postgres.ConnectionString;
         fixture.RabbitMqOptions = rabbitMq.Options;
+        fixture.RegistryOptions = poStack.RegistryOptions;
     }
 
     [Fact]
@@ -43,9 +44,9 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var cert = new CertificateDto
         {
             Id = Guid.NewGuid(),
-            Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
-            GridArea = "DK1",
+            Start = DateTimeOffset.UtcNow.RoundToLatestHour(),
+            End = DateTimeOffset.UtcNow.AddHours(1).RoundToLatestHour(),
+            GridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key,
             Quantity = 1234,
             Type = Server.Services.REST.v1.CertificateType.Production,
             ClearTextAttributes = new Dictionary<string, string>
@@ -59,7 +60,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        await client.PostCertificate(recipientId, cert);
+        await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
 
         var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
 

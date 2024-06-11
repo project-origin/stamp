@@ -1,4 +1,4 @@
-CREATE TABLE Certificates (
+CREATE TABLE IF NOT EXISTS Certificates (
     id uuid NOT NULL,
     registry_name VARCHAR(64) NOT NULL,
     certificate_type integer NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE Certificates (
     PRIMARY KEY(id, registry_name)
 );
 
-CREATE TABLE ClearTextAttributes (
+CREATE TABLE IF NOT EXISTS ClearTextAttributes (
     id uuid NOT NULL PRIMARY KEY,
     attribute_key VARCHAR(256) NOT NULL,
     attribute_value VARCHAR(512) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE ClearTextAttributes (
         NOT VALID
 );
 
-CREATE TABLE HashedAttributes (
+CREATE TABLE IF NOT EXISTS HashedAttributes (
     id uuid NOT NULL PRIMARY KEY,
     attribute_key VARCHAR(256) NOT NULL,
     attribute_value VARCHAR(512) NOT NULL,
@@ -40,10 +40,9 @@ CREATE TABLE HashedAttributes (
         NOT VALID
 );
 
-CREATE TABLE OutboxMessages (
+CREATE TABLE IF NOT EXISTS OutboxMessages (
     id uuid NOT NULL PRIMARY KEY,
     message_type VARCHAR(250) NOT NULL,
     json_payload TEXT NOT NULL,
-    created timestamp with time zone NOT NULL,
-    processed BOOLEAN NOT NULL
+    created timestamp with time zone NOT NULL
 );

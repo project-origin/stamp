@@ -6,7 +6,6 @@ using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.Repositories;
-using ProjectOrigin.Stamp.Server.Services.REST.v1;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using Xunit;
 
@@ -30,24 +29,23 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
         var payloadObj = new CertificateCreatedEvent
         {
             CertificateId = Guid.NewGuid(),
-            //CertificateType = GranularCertificateType.Production,
-            //Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            //End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
-            //GridArea = "DK1",
-            //ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
-            //HashedAttributes = new List<CertificateHashedAttribute>(),
-            //Quantity = 1234,
-            //RegistryName = "Energinet.dk",
-            //WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
-            //RecipientId = Guid.NewGuid()
+            CertificateType = GranularCertificateType.Production,
+            Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            GridArea = "DK1",
+            ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
+            HashedAttributes = new List<CertificateHashedAttribute>(),
+            Quantity = 1234,
+            RegistryName = "Energinet.dk",
+            WalletEndpointReferencePublicKey = privateKey.Neuter().Export().ToArray(),
+            RecipientId = Guid.NewGuid()
         };
         var message = new OutboxMessage
         {
             Created = DateTimeOffset.Now.ToUtcTime(),
             JsonPayload = JsonSerializer.Serialize(payloadObj),
             MessageType = typeof(CertificateCreatedEvent).ToString(),
-            Id = Guid.NewGuid(),
-            Processed = false
+            Id = Guid.NewGuid()
         };
 
         await _repository.Create(message);
@@ -69,8 +67,7 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
             Created = DateTimeOffset.Now.ToUtcTime(),
             JsonPayload = "{}",
             MessageType = "Test",
-            Id = Guid.NewGuid(),
-            Processed = false
+            Id = Guid.NewGuid()
         };
 
         await _repository.Create(message);

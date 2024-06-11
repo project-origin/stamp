@@ -60,7 +60,7 @@ public class ProjectOriginStack : RegistryFixture
         });
     }
 
-    public RegistryOptions Options => new()
+    public RegistryOptions RegistryOptions => new()
     {
         IssuerPrivateKeyPems = new Dictionary<string, byte[]>
         {
@@ -73,7 +73,7 @@ public class ProjectOriginStack : RegistryFixture
         }
     };
 
-    public string WalletUrl => new UriBuilder("http", walletContainer.Value.Hostname, walletContainer.Value.GetMappedPublicPort(WalletHttpPort), PathBase).Uri.ToString();
+    public string WalletUrl => new UriBuilder("http", walletContainer.Value.Hostname, walletContainer.Value.GetMappedPublicPort(WalletHttpPort)).Uri.ToString();
 
     public string WalletReceiveSliceUrl => WalletUrl + "v1/slices";
 

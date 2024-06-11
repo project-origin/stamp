@@ -40,14 +40,9 @@ public class OutboxPollingWorker : BackgroundService
                     var type = Type.GetType($"{msg.MessageType}, ProjectOrigin.Stamp.Server");
                     var loadedObject = JsonSerializer.Deserialize(msg.JsonPayload, type!);
 
-                    var endpoint = await bus.GetSendEndpoint(new Uri("queue:certificate-created-event-handler"));
-
-                    await endpoint.Send(loadedObject!, stoppingToken);
-
-                    //await bus.Publish(loadedObject!, stoppingToken);
-                    //await unitOfWork.OutboxMessageRepository.Delete(msg.Id);
+                    await bus.Publish(loadedObject!, stoppingToken);
+                    await unitOfWork.OutboxMessageRepository.Delete(msg.Id);
                     unitOfWork.Commit();
-                    await Task.Delay(1000, stoppingToken);
                 }
                 catch (Exception ex)
                 {

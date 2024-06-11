@@ -27,6 +27,7 @@ using ProjectOrigin.Stamp.Server.Options;
 using ProjectOrigin.Stamp.Server.Serialization;
 using ProjectOrigin.Stamp.Server.Services.REST;
 using ProjectOrigin.Stamp.Server.EventHandlers;
+using ProjectOrigin.Stamp.Server.Helpers;
 
 namespace ProjectOrigin.Stamp.Server;
 
@@ -75,6 +76,7 @@ public class Startup
             .ValidateOnStart();
 
         services.AddRegistryOptions();
+        services.AddHttpClient();
 
         services.ConfigurePersistance(_configuration);
 
@@ -127,6 +129,7 @@ public class Startup
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IDbConnectionFactory, PostgresConnectionFactory>();
+        services.AddScoped<IKeyGenerator, KeyGenerator>();
 
         services.AddHostedService<OutboxPollingWorker>();
 

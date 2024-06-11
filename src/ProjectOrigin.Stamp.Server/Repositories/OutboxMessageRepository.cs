@@ -25,24 +25,22 @@ public class OutboxMessageRepository : IOutboxMessageRepository
     public async Task Create(OutboxMessage message)
     {
         await _connection.ExecuteAsync(
-            @"INSERT INTO OutboxMessages(id, message_type, json_payload, created, processed)
-              VALUES (@Id, @MessageType, @JsonPayload, @Created, @Processed)",
+            @"INSERT INTO OutboxMessages(id, message_type, json_payload, created)
+              VALUES (@Id, @MessageType, @JsonPayload, @Created)",
             new
             {
                 message.Id,
                 message.MessageType,
                 message.JsonPayload,
-                message.Created,
-                message.Processed
+                message.Created
             });
     }
 
     public Task<OutboxMessage?> GetFirstNonProcessed()
     {
         return _connection.QueryFirstOrDefaultAsync<OutboxMessage>(
-            @"SELECT id, message_type, json_payload, created, processed
-                FROM OutboxMessages
-                WHERE processed = false");
+            @"SELECT id, message_type, json_payload, created
+                FROM OutboxMessages");
     }
 
     public async Task Delete(Guid outboxMessageId)

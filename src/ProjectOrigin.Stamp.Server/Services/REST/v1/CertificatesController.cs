@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProjectOrigin.Stamp.Server.CommandHandlers;
 using ProjectOrigin.Stamp.Server.Database;
+using ProjectOrigin.Stamp.Server.Helpers;
 
 namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
 
@@ -35,6 +36,9 @@ public class CertificatesController : ControllerBase
     {
         if(request.Certificate.Start >= request.Certificate.End)
             return BadRequest("Start date must be before end date.");
+
+        if (WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(request.Certificate.Start) == null)
+            return BadRequest("Start date must be rounded to nearest minute.");
 
         var certificate = await unitOfWork.CertificateRepository.Get(request.RegistryName, request.Certificate.Id);
 

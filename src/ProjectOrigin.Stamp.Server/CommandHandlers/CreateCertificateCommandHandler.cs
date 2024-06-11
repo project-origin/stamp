@@ -67,16 +67,16 @@ public class CreateCertificateCommandHandler : IConsumer<CreateCertificateComman
         var payloadObj = new CertificateCreatedEvent
         {
             CertificateId = cert.Id,
-            //CertificateType = cert.CertificateType,
-            //Start = cert.StartDate,
-            //End = cert.EndDate,
-            //GridArea = cert.GridArea,
-            //ClearTextAttributes = cert.ClearTextAttributes,
-            //HashedAttributes = cert.HashedAttributes,
-            //Quantity = cert.Quantity,
-            //RegistryName = message.RegistryName,
-            //WalletEndpointReferencePublicKey = message.WalletEndpointReferencePublicKey,
-            //RecipientId = message.RecipientId
+            CertificateType = cert.CertificateType,
+            Start = cert.StartDate,
+            End = cert.EndDate,
+            GridArea = cert.GridArea,
+            ClearTextAttributes = cert.ClearTextAttributes,
+            HashedAttributes = cert.HashedAttributes,
+            Quantity = cert.Quantity,
+            RegistryName = message.RegistryName,
+            WalletEndpointReferencePublicKey = message.WalletEndpointReferencePublicKey,
+            RecipientId = message.RecipientId
         };
         await _unitOfWork.OutboxMessageRepository.Create(new OutboxMessage
         {

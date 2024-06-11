@@ -35,12 +35,12 @@ public static class HttpClientExtensions
         return (await response.Content.ReadJson<CreateRecipientResponse>())!.Id;
     }
 
-    public static async Task PostCertificate(this HttpClient client, Guid recipientId, CertificateDto certificate)
+    public static async Task PostCertificate(this HttpClient client, Guid recipientId, string registryName, CertificateDto certificate)
     {
         var request = new CreateCertificateRequest
         {
             RecipientId = recipientId,
-            RegistryName = "DK1",
+            RegistryName = registryName,
             Certificate = certificate
         };
 
