@@ -1,7 +1,11 @@
+using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
+using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using System.Diagnostics;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using ProjectOrigin.Stamp.Server.Services.REST.v1;
 
 namespace ProjectOrigin.Stamp.Test.Extensions;
 
@@ -19,6 +23,33 @@ public static class WalletServiceClientExtensions
             options: JsonSerializerOptions);
 
         return response!.Result.ToList();
+    }
+
+    public static async Task<WalletEndpointReferenceDto> CreateWalletAndEndpoint(this HttpClient client)
+    {
+        var request = new CreateWalletRequest
+        {
+            PrivateKey = null
+        };
+        var requestStr = JsonSerializer.Serialize(request);
+        var content = new StringContent(requestStr, Encoding.UTF8, "application/json");
+
+        var res1 = await client.PostAsync("v1/wallets", content);
+        res1.EnsureSuccessStatusCode();
+
+        if (res1 == null || res1.Content == null)
+            throw new HttpRequestException("Failed to create wallet.");
+
+        var createResponse = (await res1.Content.ReadFromJsonAsync<CreateWalletResponse>())!;
+
+        var res2 = await client.PostAsync($"v1/wallets/{createResponse.WalletId}/endpoints", null);
+        res2.EnsureSuccessStatusCode();
+
+        if (res2 == null || res2.Content == null)
+            throw new HttpRequestException("Failed to create wallet endpoint.");
+
+        var response = (await res2.Content.ReadFromJsonAsync<CreateWalletEndpointResponse>())!;
+        return response.WalletReference;
     }
 
     public static async Task<IList<WalletCertificate>> RepeatedlyQueryCertificatesUntil(this HttpClient client, Func<IEnumerable<WalletCertificate>, bool> condition, TimeSpan? timeLimit = null)
@@ -46,6 +77,21 @@ public static class WalletServiceClientExtensions
             $"Condition for certificates in wallet not met within time limit ({limit.TotalSeconds} seconds)");
     }
 }
+
+public record CreateWalletRequest()
+{
+    /// <summary>
+    /// The private key to import. If not provided, a private key will be generated.
+    /// </summary>
+    public byte[]? PrivateKey { get; init; }
+}
+
+public record CreateWalletResponse()
+{
+    public Guid WalletId { get; init; }
+}
+
+public record CreateWalletEndpointResponse(WalletEndpointReferenceDto WalletReference);
 
 /// <summary>
 /// A certificate that is available to use in the wallet.

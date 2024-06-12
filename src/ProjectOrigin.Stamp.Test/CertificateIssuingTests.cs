@@ -34,12 +34,17 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         certs.Should().BeEmpty();
     }
 
-    [Fact]
-    public async Task IssueProductionCertificate()
+    [Theory]
+    [InlineData(Server.Services.REST.v1.CertificateType.Production)]
+    [InlineData(Server.Services.REST.v1.CertificateType.Consumption)]
+    public async Task IssueCertificate(Server.Services.REST.v1.CertificateType type)
     {
-        var client = _fixture.CreateHttpClient();
+        var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
 
-        var recipientId = await client.AddRecipient(_poStack.WalletReceiveSliceUrl);
+        var endpointRef = await walletClient.CreateWalletAndEndpoint();
+
+        var client = _fixture.CreateHttpClient();
+        var recipientId = await client.AddRecipient(endpointRef);
 
         var cert = new CertificateDto
         {
@@ -48,7 +53,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             End = DateTimeOffset.UtcNow.AddHours(1).RoundToLatestHour(),
             GridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key,
             Quantity = 1234,
-            Type = Server.Services.REST.v1.CertificateType.Production,
+            Type = type,
             ClearTextAttributes = new Dictionary<string, string>
             {
                 { "fuelCode", "F01040100" },
@@ -62,11 +67,19 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
 
         await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
 
-        var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
-
         var certs = await walletClient.RepeatedlyQueryCertificatesUntil(certs => certs.Any());
 
         certs.Should().HaveCount(1);
+        var queriedCert = certs.First();
 
+        queriedCert.FederatedStreamId.StreamId.Should().Be(cert.Id);
+        queriedCert.FederatedStreamId.Registry.Should().Be(_fixture.RegistryOptions.RegistryUrls.First().Key);
+        queriedCert.Quantity.Should().Be(cert.Quantity);
+        queriedCert.Start.Should().Be(cert.Start);
+        queriedCert.End.Should().Be(cert.End);
+        queriedCert.GridArea.Should().Be(cert.GridArea);
+        queriedCert.CertificateType.Should().Be(type.MapToWalletModel());
+        //TODO attributes
+        //TODO Remove processed from OutboxMessage
     }
 }

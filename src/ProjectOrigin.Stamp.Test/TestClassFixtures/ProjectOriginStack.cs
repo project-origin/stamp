@@ -73,9 +73,7 @@ public class ProjectOriginStack : RegistryFixture
         }
     };
 
-    public string WalletUrl => new UriBuilder("http", walletContainer.Value.Hostname, walletContainer.Value.GetMappedPublicPort(WalletHttpPort)).Uri.ToString();
-
-    public string WalletReceiveSliceUrl => WalletUrl + "v1/slices";
+    public string WalletUrl => new UriBuilder("http", walletContainer.Value.Hostname, walletContainer.Value.GetMappedPublicPort(WalletHttpPort), PathBase).Uri.ToString();
 
     public HttpClient CreateWalletClient(string subject)
     {

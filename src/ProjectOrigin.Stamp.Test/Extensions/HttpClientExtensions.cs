@@ -22,11 +22,11 @@ public static class HttpClientExtensions
         return options;
     }
 
-    public static async Task<Guid> AddRecipient(this HttpClient client, string walletEndpoint)
+    public static async Task<Guid> AddRecipient(this HttpClient client, WalletEndpointReferenceDto walletEndpointRef)
     {
         var request = new CreateRecipientRequest
         {
-            WalletEndpointReference = new WalletEndpointReferenceDto { Version = 1, Endpoint = new Uri(walletEndpoint), PublicKey = Some.WalletPublicKey() }
+            WalletEndpointReference = walletEndpointRef
         };
 
         var response = await client.PostAsJsonAsync("/stamp-api/v1/recipients", request);
