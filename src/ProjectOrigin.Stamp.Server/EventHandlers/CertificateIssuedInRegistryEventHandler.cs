@@ -68,7 +68,7 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
         });
         _unitOfWork.Commit();
 
-        _logger.LogInformation("Certificate with registry {message.RegistryName} and certificateId {message.CertificateId} issued.", message.Registry, message.CertificateId);
+        _logger.LogInformation("Certificate with registry {Registry} and certificateId {CertificateId} issued.", message.Registry, message.CertificateId);
     }
 }
 

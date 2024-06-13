@@ -24,11 +24,7 @@ public static class IBusRegistrationConfiguratorExtensions
             case MessageBrokerType.RabbitMq:
                 busConfig.UsingRabbitMq((context, cfg) =>
                 {
-                    //cfg.ConfigureDefaults(context);
                     cfg.ConfigureEndpoints(context);
-
-                    //cfg.ReceiveEndpoint("certificate-created-event-handler2",
-                    //    e => e.ConfigureConsumer<CertificateCreatedEventHandler>(context));
 
                     var rabbitOption = options.RabbitMq!;
                     cfg.Host(rabbitOption.Host, rabbitOption.Port, "/", h =>

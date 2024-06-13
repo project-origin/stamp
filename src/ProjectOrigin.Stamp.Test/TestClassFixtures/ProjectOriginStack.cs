@@ -85,7 +85,7 @@ public class ProjectOriginStack : RegistryFixture
         return client;
     }
 
-    private string GenerateToken(string subject)
+    private static string GenerateToken(string subject)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var tokenDescriptor = new SecurityTokenDescriptor

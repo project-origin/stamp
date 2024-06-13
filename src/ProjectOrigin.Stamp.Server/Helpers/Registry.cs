@@ -57,9 +57,6 @@ public static class Registry
 
         foreach (var attr in hashedAttributes)
         {
-            //var str = attribute.Key + attribute.Value + id.StreamId.Value.ToString() + Convert.ToHexString(attribute.Salt);
-            //var hashedValue = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
-
             var str = attr.HaKey + attr.HaValue + certificateId + Convert.ToHexString(attr.Salt);
             var hashedValue = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
             issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.AssetId, Value = hashedValue, Type = AttributeType.Hashed });
