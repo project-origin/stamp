@@ -40,7 +40,7 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
 
         if (certificate == null)
         {
-            _logger.LogWarning("Certificate with registry {message.RegistryName} and certificateId {message.CertificateId} not found.", message.Registry, message.CertificateId);
+            _logger.LogWarning("Certificate with registry {Registry} and certificateId {CertificateId} not found.", message.Registry, message.CertificateId);
             return;
         }
 
