@@ -32,7 +32,7 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
             },
             HashedAttributes =
             [
-                new () { HaKey = "AssetId", HaValue = "1234", Salt = Guid.NewGuid().ToByteArray() }
+                new() { HaKey = "AssetId", HaValue = "1234", Salt = Guid.NewGuid().ToByteArray() }
             ],
             Id = Guid.NewGuid(),
             CertificateType = GranularCertificateType.Production,
@@ -68,7 +68,7 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
         {
             EndDate = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
             GridArea = "DK1",
-            ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" }  },
+            ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" } },
             HashedAttributes = new List<CertificateHashedAttribute>(),
             Id = Guid.NewGuid(),
             CertificateType = GranularCertificateType.Production,

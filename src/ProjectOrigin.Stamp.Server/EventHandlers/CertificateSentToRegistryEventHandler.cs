@@ -21,7 +21,7 @@ public record CertificateSentToRegistryEvent
     public required Guid RecipientId { get; init; }
     public required uint WalletEndpointPosition { get; init; }
     public required byte[] RandomR { get; init; }
-}   
+}
 
 public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentToRegistryEvent>
 {

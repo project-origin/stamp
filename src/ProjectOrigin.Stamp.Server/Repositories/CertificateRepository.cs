@@ -101,7 +101,7 @@ public class CertificateRepository : ICertificateRepository
                 if (atrClear != null && !certificate.ClearTextAttributes.Any(ha => ha.Key == atrClear.Key))
                     certificate.ClearTextAttributes.Add(atrClear.Key, atrClear.Value);
 
-                if(atrHashed != null && !certificate.HashedAttributes.Any(ha => ha.HaKey == atrHashed.HaKey))
+                if (atrHashed != null && !certificate.HashedAttributes.Any(ha => ha.HaKey == atrHashed.HaKey))
                     certificate.HashedAttributes.Add(atrHashed);
 
                 return certificate;

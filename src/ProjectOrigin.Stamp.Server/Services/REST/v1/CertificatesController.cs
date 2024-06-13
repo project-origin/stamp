@@ -37,7 +37,7 @@ public class CertificatesController : ControllerBase
         [FromServices] IUnitOfWork unitOfWork,
         [FromBody] CreateCertificateRequest request)
     {
-        if(request.Certificate.Start >= request.Certificate.End)
+        if (request.Certificate.Start >= request.Certificate.End)
             return BadRequest("Start date must be before end date.");
 
         if (WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(request.Certificate.Start) == null)
@@ -52,7 +52,8 @@ public class CertificatesController : ControllerBase
 
         if (certificate != null)
             return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists.");
-        else {
+        else
+        {
             certificate = new GranularCertificate
             {
                 Id = request.Certificate.Id,
