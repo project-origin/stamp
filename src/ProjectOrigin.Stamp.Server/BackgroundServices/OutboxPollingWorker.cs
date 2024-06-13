@@ -29,7 +29,7 @@ public class OutboxPollingWorker : BackgroundService
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             var bus = scope.ServiceProvider.GetRequiredService<IBus>();
 
-            var msg = await unitOfWork.OutboxMessageRepository.GetFirstNonProcessed();
+            var msg = await unitOfWork.OutboxMessageRepository.GetFirst();
 
             if (msg != null)
             {

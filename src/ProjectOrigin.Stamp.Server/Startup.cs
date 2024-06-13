@@ -18,7 +18,6 @@ using OpenTelemetry.Trace;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using ProjectOrigin.Stamp.Server.BackgroundServices;
-using ProjectOrigin.Stamp.Server.CommandHandlers;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Database.Mapping;
 using ProjectOrigin.Stamp.Server.Database.Postgres;
@@ -117,7 +116,6 @@ public class Startup
         {
             o.SetKebabCaseEndpointNameFormatter();
 
-            o.AddConsumer<CreateCertificateCommandHandler, CreateCertificateCommandHandlerDefinition>();
             o.AddConsumer<CertificateCreatedEventHandler, CertificateCreatedEventHandlerDefinition>();
             o.AddConsumer<CertificateFailedInRegistryEventHandler, CertificateFailedInRegistryEventHandlerDefinition>();
             o.AddConsumer<CertificateIssuedInRegistryEventHandler, CertificateIssuedInRegistryEventHandlerDefinition>();

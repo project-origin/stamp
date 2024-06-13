@@ -50,7 +50,7 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
 
         await _repository.Create(message);
 
-        var queriedMessage = await _repository.GetFirstNonProcessed();
+        var queriedMessage = await _repository.GetFirst();
 
         queriedMessage.Should().BeEquivalentTo(message);
 
@@ -72,12 +72,12 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
 
         await _repository.Create(message);
 
-        var queriedMessage = await _repository.GetFirstNonProcessed();
+        var queriedMessage = await _repository.GetFirst();
         queriedMessage.Should().BeEquivalentTo(message);
 
         await _repository.Delete(queriedMessage!.Id);
 
-        var deletedMessage = await _repository.GetFirstNonProcessed();
+        var deletedMessage = await _repository.GetFirst();
         deletedMessage.Should().BeNull();
     }
 }

@@ -35,7 +35,7 @@ public static class HttpClientExtensions
         return (await response.Content.ReadJson<CreateRecipientResponse>())!.Id;
     }
 
-    public static async Task PostCertificate(this HttpClient client, Guid recipientId, string registryName, CertificateDto certificate)
+    public static async Task<HttpResponseMessage> PostCertificate(this HttpClient client, Guid recipientId, string registryName, CertificateDto certificate)
     {
         var request = new CreateCertificateRequest
         {
@@ -44,7 +44,6 @@ public static class HttpClientExtensions
             Certificate = certificate
         };
 
-        var response = await client.PostAsJsonAsync("/stamp-api/v1/certificates", request);
-        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        return await client.PostAsJsonAsync("/stamp-api/v1/certificates", request);
     }
 }

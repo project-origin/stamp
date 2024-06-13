@@ -63,7 +63,7 @@ public class OutboxPollingWorkerTests
             Id = Guid.NewGuid()
         };
         using var tokenSource = new CancellationTokenSource();
-        outboxRepositoryMock.GetFirstNonProcessed().Returns(message);
+        outboxRepositoryMock.GetFirst().Returns(message);
         unitOfWorkMock.OutboxMessageRepository.Returns(outboxRepositoryMock);
         busMock
             .Publish(Arg.Any<object?>(), Arg.Any<CancellationToken>())
@@ -84,7 +84,7 @@ public class OutboxPollingWorkerTests
     public async Task WhenMessageIsNull_ShouldNotPublishAndDelete()
     {
         using var tokenSource = new CancellationTokenSource();
-        outboxRepositoryMock.GetFirstNonProcessed()
+        outboxRepositoryMock.GetFirst()
             .Returns((OutboxMessage)null)
             .AndDoes(_ => tokenSource.Cancel());
         unitOfWorkMock.OutboxMessageRepository.Returns(outboxRepositoryMock);

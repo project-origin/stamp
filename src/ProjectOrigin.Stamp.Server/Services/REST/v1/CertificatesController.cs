@@ -1,13 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using ProjectOrigin.Stamp.Server.CommandHandlers;
 using ProjectOrigin.Stamp.Server.Database;
+using ProjectOrigin.Stamp.Server.EventHandlers;
+using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Helpers;
+using ProjectOrigin.Stamp.Server.Models;
 
 namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
 
@@ -40,32 +43,59 @@ public class CertificatesController : ControllerBase
         if (WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(request.Certificate.Start) == null)
             return BadRequest("Start date must be rounded to nearest minute.");
 
-        var certificate = await unitOfWork.CertificateRepository.Get(request.RegistryName, request.Certificate.Id);
-
-        if (certificate != null)
-            return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists.");
-
         var recipient = await unitOfWork.RecipientRepository.Get(request.RecipientId);
 
         if (recipient == null)
             return NotFound($"Recipient with id {request.RecipientId} not found.");
 
-        var cmd = new CreateCertificateCommand
-        {
-            CertificateId = request.Certificate.Id,
-            RegistryName = request.RegistryName,
-            RecipientId = request.RecipientId,
-            WalletEndpointReferencePublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
-            CertificateType = request.Certificate.Type.MapToModel(),
-            Quantity = request.Certificate.Quantity,
-            Start = request.Certificate.Start,
-            End = request.Certificate.End,
-            GridArea = request.Certificate.GridArea,
-            ClearTextAttributes = request.Certificate.ClearTextAttributes,
-            HashedAttributes = request.Certificate.HashedAttributes.MapToModel().ToList()
-        };
+        var certificate = await unitOfWork.CertificateRepository.Get(request.RegistryName, request.Certificate.Id);
 
-        await bus.Publish(cmd);
+        if (certificate != null)
+            return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists.");
+        else {
+            certificate = new GranularCertificate
+            {
+                Id = request.Certificate.Id,
+                RegistryName = request.RegistryName,
+                CertificateType = request.Certificate.Type.MapToModel(),
+                Quantity = request.Certificate.Quantity,
+                StartDate = request.Certificate.Start,
+                EndDate = request.Certificate.End,
+                GridArea = request.Certificate.GridArea,
+                ClearTextAttributes = request.Certificate.ClearTextAttributes,
+                HashedAttributes = request.Certificate.HashedAttributes.Select(ha => new CertificateHashedAttribute
+                {
+                    HaKey = ha.Key,
+                    HaValue = ha.Value,
+                    Salt = Guid.NewGuid().ToByteArray()
+                }).ToList()
+            };
+
+            await unitOfWork.CertificateRepository.Create(certificate);
+        }
+
+        var payloadObj = new CertificateCreatedEvent
+        {
+            CertificateId = certificate.Id,
+            CertificateType = certificate.CertificateType,
+            Start = certificate.StartDate,
+            End = certificate.EndDate,
+            GridArea = certificate.GridArea,
+            ClearTextAttributes = certificate.ClearTextAttributes,
+            HashedAttributes = certificate.HashedAttributes,
+            Quantity = certificate.Quantity,
+            RegistryName = request.RegistryName,
+            WalletEndpointReferencePublicKey = recipient.WalletEndpointReferencePublicKey.Export().ToArray(),
+            RecipientId = request.RecipientId
+        };
+        await unitOfWork.OutboxMessageRepository.Create(new OutboxMessage
+        {
+            Created = DateTimeOffset.Now.ToUtcTime(),
+            Id = Guid.NewGuid(),
+            JsonPayload = JsonSerializer.Serialize(payloadObj),
+            MessageType = typeof(CertificateCreatedEvent).ToString()
+        });
+        unitOfWork.Commit();
 
         return Accepted(new IssueCertificateResponse());
     }
@@ -154,11 +184,6 @@ public record HashedAttribute()
     /// The value of the attribute.
     /// </summary>
     public required string Value { get; init; }
-
-    /// <summary>
-    /// The salt used to hash the attribute.
-    /// </summary>
-    public required byte[] Salt { get; init; }
 }
 
 /// <summary>

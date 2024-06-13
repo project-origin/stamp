@@ -17,9 +17,9 @@ public static class Registry
 {
     public static class Attributes
     {
-        public const string AssetId = "AssetId";
-        public const string TechCode = "TechCode";
-        public const string FuelCode = "FuelCode";
+        public const string AssetId = "assetId";
+        public const string TechCode = "techCode";
+        public const string FuelCode = "fuelCode";
     }
 
     public static IssuedEvent BuildIssuedEvent(string registryName, Guid certificateId, DateInterval period,
@@ -48,17 +48,21 @@ public static class Registry
                 Content = ByteString.CopyFrom(ownerPublicKey.Export()),
                 Type = KeyType.Secp256K1
             },
-            //TODO: AssetIdHash not set. Added as non-hidden attribute instead. See https://github.com/project-origin/registry/issues/129 for more details
+            //AssetIdHash is to be removed as parameter from the registry.
         };
         foreach (var attr in attributes)
         {
-            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = attr.Key, Value = attr.Value });
+            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = attr.Key, Value = attr.Value, Type = AttributeType.Cleartext });
         }
 
         foreach (var attr in hashedAttributes)
         {
-            var str = attr.Key + attr.Value + certificateId + Convert.ToHexString(attr.Salt);
-            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.AssetId, Value = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str))) });
+            //var str = attribute.Key + attribute.Value + id.StreamId.Value.ToString() + Convert.ToHexString(attribute.Salt);
+            //var hashedValue = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
+
+            var str = attr.HaKey + attr.HaValue + certificateId + Convert.ToHexString(attr.Salt);
+            var hashedValue = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
+            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.AssetId, Value = hashedValue, Type = AttributeType.Hashed });
         }
 
         return issuedEvent;

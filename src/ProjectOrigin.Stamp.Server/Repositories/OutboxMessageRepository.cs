@@ -9,7 +9,7 @@ namespace ProjectOrigin.Stamp.Server.Repositories;
 public interface IOutboxMessageRepository
 {
     Task Create(OutboxMessage message);
-    Task<OutboxMessage?> GetFirstNonProcessed();
+    Task<OutboxMessage?> GetFirst();
     Task Delete(Guid outboxMessageId);
 }
 
@@ -36,7 +36,7 @@ public class OutboxMessageRepository : IOutboxMessageRepository
             });
     }
 
-    public Task<OutboxMessage?> GetFirstNonProcessed()
+    public Task<OutboxMessage?> GetFirst()
     {
         return _connection.QueryFirstOrDefaultAsync<OutboxMessage>(
             @"SELECT id, message_type, json_payload, created

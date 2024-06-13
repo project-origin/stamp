@@ -23,10 +23,10 @@ public record CertificateClearTextAttribute
     public required string Value { get; init; }
 }
 
-public record CertificateHashedAttribute()
+public record CertificateHashedAttribute
 {
-    public required string Key { get; init; }
-    public required string Value { get; init; }
+    public required string HaKey { get; init; }
+    public required string HaValue { get; init; }
     public required byte[] Salt { get; init; }
 }
 

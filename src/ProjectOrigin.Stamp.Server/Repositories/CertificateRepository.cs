@@ -61,12 +61,12 @@ public class CertificateRepository : ICertificateRepository
         {
             await _connection.ExecuteAsync(
                 @"INSERT INTO HashedAttributes(id, attribute_key, attribute_value, salt, certificate_id, registry_name)
-                  VALUES (@id, @key, @value, @salt, @certificateId, @registryName)",
+                  VALUES (@id, @haKey, @haValue, @salt, @certificateId, @registryName)",
                 new
                 {
                     id = Guid.NewGuid(),
-                    atr.Key,
-                    atr.Value,
+                    atr.HaKey,
+                    atr.HaValue,
                     atr.Salt,
                     certificateId = certificate.Id,
                     certificate.RegistryName
@@ -78,7 +78,7 @@ public class CertificateRepository : ICertificateRepository
     {
         var certsDictionary = new Dictionary<Guid, GranularCertificate>();
         await _connection.QueryAsync<GranularCertificate?, CertificateClearTextAttribute?, CertificateHashedAttribute?, GranularCertificate?>(
-            @"SELECT c.*, a.attribute_key as key, a.attribute_value as value, ha.attribute_key as key, ha.attribute_value as value, ha.salt
+            @"SELECT c.*, a.attribute_key as key, a.attribute_value as value, ha.attribute_key as haKey, ha.attribute_value as haValue, ha.salt
               FROM certificates c
               LEFT JOIN ClearTextAttributes a
                 ON c.id = a.certificate_id
@@ -98,15 +98,15 @@ public class CertificateRepository : ICertificateRepository
                     certsDictionary.Add(cert.Id, cert);
                 }
 
-                if(atrClear != null)
+                if (atrClear != null && !certificate.ClearTextAttributes.Any(ha => ha.Key == atrClear.Key))
                     certificate.ClearTextAttributes.Add(atrClear.Key, atrClear.Value);
 
-                if(atrHashed != null)
+                if(atrHashed != null && !certificate.HashedAttributes.Any(ha => ha.HaKey == atrHashed.HaKey))
                     certificate.HashedAttributes.Add(atrHashed);
 
                 return certificate;
             },
-            splitOn: "key, key",
+            splitOn: "key, haKey",
             param: new
             {
                 certificateId,

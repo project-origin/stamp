@@ -68,8 +68,8 @@ public class CertificateMarkedAsIssuedEventHandler : IConsumer<CertificateMarked
                 RandomR = message.RandomR,
                 HashedAttributes = message.HashedAttributes.Select(ha => new HashedAttribute()
                 {
-                    Key = ha.Key,
-                    Value = ha.Value,
+                    Key = ha.HaKey,
+                    Value = ha.HaValue,
                     Salt = ha.Salt
                 })
             };
