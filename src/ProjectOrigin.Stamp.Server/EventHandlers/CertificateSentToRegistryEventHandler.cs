@@ -79,7 +79,7 @@ public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentTo
         }
         catch (RpcException ex)
         {
-            _logger.LogWarning("RegistryName {registryName} communication error. Exception: {ex}", message.RegistryName, ex);
+            _logger.LogWarning(ex, $"RegistryName {message.RegistryName} communication error.");
             throw new TransientException($"RegistryName {message.RegistryName} communication error");
         }
     }
