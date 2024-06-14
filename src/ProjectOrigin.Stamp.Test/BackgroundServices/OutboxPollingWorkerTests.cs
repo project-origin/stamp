@@ -89,8 +89,14 @@ public class OutboxPollingWorkerTests
             .AndDoes(_ => tokenSource.Cancel());
         unitOfWorkMock.OutboxMessageRepository.Returns(outboxRepositoryMock);
 
-        // Act
-        await sut.StartAsync(tokenSource.Token);
+        // Act and ignore TaskCanceledException when Delay happens
+        try
+        {
+            await sut.StartAsync(tokenSource.Token);
+        }
+        catch (TaskCanceledException)
+        {
+        }
 
         // Assert
         await busMock.DidNotReceive().Publish(Arg.Any<object?>(), Arg.Any<CancellationToken>());
