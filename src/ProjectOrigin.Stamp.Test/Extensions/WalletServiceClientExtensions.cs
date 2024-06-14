@@ -52,7 +52,7 @@ public static class WalletServiceClientExtensions
         return response.WalletReference;
     }
 
-    public static async Task<IList<WalletCertificate>> RepeatedlyQueryCertificatesUntil(this HttpClient client, Func<IEnumerable<WalletCertificate>, bool> condition, TimeSpan? timeLimit = null)
+    public static async Task<IList<WalletCertificate>> RepeatedlyGetCertificatesUntil(this HttpClient client, Func<IEnumerable<WalletCertificate>, bool> condition, TimeSpan? timeLimit = null)
     {
         if (timeLimit.HasValue && timeLimit.Value <= TimeSpan.Zero)
             throw new ArgumentException($"{nameof(timeLimit)} must be a positive time span");

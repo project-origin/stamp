@@ -32,6 +32,7 @@ public class CertificatesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> IssueCertificate(
         [FromServices] IBus bus,
         [FromServices] IUnitOfWork unitOfWork,

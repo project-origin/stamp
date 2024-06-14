@@ -171,9 +171,9 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
     }
 
     [Theory]
-    [InlineData(Server.Services.REST.v1.CertificateType.Production)]
-    [InlineData(Server.Services.REST.v1.CertificateType.Consumption)]
-    public async Task IssueCertificate(Server.Services.REST.v1.CertificateType type)
+    [InlineData(CertificateType.Production)]
+    [InlineData(CertificateType.Consumption)]
+    public async Task IssueCertificate(CertificateType type)
     {
         var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
 
@@ -205,7 +205,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        var certs = await walletClient.RepeatedlyQueryCertificatesUntil(certs => certs.Any());
+        var certs = await walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any());
 
         certs.Should().HaveCount(1);
         var queriedCert = certs.First();
@@ -226,9 +226,9 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
     }
 
     [Theory]
-    [InlineData(Server.Services.REST.v1.CertificateType.Production)]
-    [InlineData(Server.Services.REST.v1.CertificateType.Consumption)]
-    public async Task IssueFiveCertificates(Server.Services.REST.v1.CertificateType type)
+    [InlineData(CertificateType.Production)]
+    [InlineData(CertificateType.Consumption)]
+    public async Task IssueFiveCertificates(CertificateType type)
     {
         var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
 
@@ -266,7 +266,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             response.StatusCode.Should().Be(HttpStatusCode.Accepted);
         }
 
-        var queryResponse = await walletClient.RepeatedlyQueryCertificatesUntil(res => res.Count() == certsCount);
+        var queryResponse = await walletClient.RepeatedlyGetCertificatesUntil(res => res.Count() == certsCount);
 
         certs = certs.OrderBy(gc => gc.Start).ToArray();
         var granularCertificates = queryResponse.OrderBy(gc => gc.Start).ToArray();

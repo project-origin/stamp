@@ -18,8 +18,6 @@ public static class Registry
     public static class Attributes
     {
         public const string AssetId = "assetId";
-        public const string TechCode = "techCode";
-        public const string FuelCode = "fuelCode";
     }
 
     public static IssuedEvent BuildIssuedEvent(string registryName, Guid certificateId, DateInterval period,
