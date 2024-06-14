@@ -11,6 +11,7 @@ using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.Repositories;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.Stamp.Server.EventHandlers;
+using ProjectOrigin.Stamp.Server.ValueObjects;
 
 namespace ProjectOrigin.Stamp.Test.BackgroundServices;
 
@@ -41,12 +42,12 @@ public class OutboxPollingWorkerTests
     public async Task ShouldPublishAndDeleteMessages()
     {
         var privateKey = new Secp256k1Algorithm().GenerateNewPrivateKey();
+        var period = new Period(DateTimeOffset.UtcNow.ToUnixTimeSeconds(), DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds());
         var payloadObj = new CertificateStoredEvent
         {
             CertificateId = Guid.NewGuid(),
             CertificateType = GranularCertificateType.Production,
-            Start = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            End = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            Period = period,
             GridArea = "DK1",
             ClearTextAttributes = new Dictionary<string, string> { { "TechCode", "T12345" } },
             HashedAttributes = new List<CertificateHashedAttribute>(),

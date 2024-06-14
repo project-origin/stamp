@@ -1,4 +1,6 @@
 using System;
+using Google.Protobuf.WellKnownTypes;
+using ProjectOrigin.Electricity.V1;
 
 namespace ProjectOrigin.Stamp.Server.ValueObjects;
 
@@ -27,4 +29,11 @@ public class Period : ValueObject
             return null;
         }
     }
+
+    public DateInterval ToDateInterval() =>
+        new()
+        {
+            Start = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(DateFrom)),
+            End = Timestamp.FromDateTimeOffset(DateTimeOffset.FromUnixTimeSeconds(DateTo))
+        };
 }

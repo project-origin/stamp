@@ -12,6 +12,7 @@ using ProjectOrigin.Stamp.Server.Exceptions;
 using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.Options;
+using ProjectOrigin.Stamp.Server.ValueObjects;
 using GranularCertificateType = ProjectOrigin.Stamp.Server.Models.GranularCertificateType;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
@@ -24,8 +25,7 @@ public class CertificateStoredEvent
     public required Guid RecipientId { get; init; }
     public required GranularCertificateType CertificateType { get; init; }
     public required uint Quantity { get; init; }
-    public required long Start { get; init; }
-    public required long End { get; init; }
+    public required Period Period { get; init; }
     public required string GridArea { get; init; }
     public required Dictionary<string, string> ClearTextAttributes { get; init; }
     public required IEnumerable<CertificateHashedAttribute> HashedAttributes { get; init; }
@@ -46,7 +46,7 @@ public class IssueInRegistryConsumer : IConsumer<CertificateStoredEvent>
     public async Task Consume(ConsumeContext<CertificateStoredEvent> context)
     {
         var message = context.Message;
-        var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(message.Start);
+        var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(message.Period.DateFrom);
         if (!endpointPosition.HasValue)
             throw new WalletException($"Cannot determine wallet endpoint position for certificate with id {message.CertificateId}");
 
@@ -55,7 +55,7 @@ public class IssueInRegistryConsumer : IConsumer<CertificateStoredEvent>
         var commitment = new SecretCommitmentInfo(message.Quantity);
 
         IssuedEvent issueEvent = Helpers.Registry.BuildIssuedEvent(message.RegistryName, message.CertificateId,
-            PeriodHelper.ToDateInterval(message.Start, message.End), message.GridArea,
+            message.Period.ToDateInterval(), message.GridArea,
             commitment, ownerPublicKey, message.CertificateType.MapToRegistryModel(), message.ClearTextAttributes,
             message.HashedAttributes.ToList());
 

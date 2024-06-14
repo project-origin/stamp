@@ -11,6 +11,7 @@ using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Models;
+using ProjectOrigin.Stamp.Server.ValueObjects;
 
 namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
 
@@ -38,7 +39,8 @@ public class CertificatesController : ControllerBase
         [FromServices] IUnitOfWork unitOfWork,
         [FromBody] CreateCertificateRequest request)
     {
-        if (request.Certificate.Start >= request.Certificate.End)
+        var period = Period.Parse(request.Certificate.Start, request.Certificate.End);
+        if (period == null)
             return BadRequest("Start date must be before end date.");
 
         if (WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(request.Certificate.Start) == null)
@@ -80,8 +82,7 @@ public class CertificatesController : ControllerBase
         {
             CertificateId = certificate.Id,
             CertificateType = certificate.CertificateType,
-            Start = certificate.StartDate,
-            End = certificate.EndDate,
+            Period = period,
             GridArea = certificate.GridArea,
             ClearTextAttributes = certificate.ClearTextAttributes,
             HashedAttributes = certificate.HashedAttributes,

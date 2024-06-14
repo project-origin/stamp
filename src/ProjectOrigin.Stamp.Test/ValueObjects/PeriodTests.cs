@@ -62,4 +62,18 @@ public class PeriodTests
         period1.Equals(period2).Should().BeTrue();
         (period1 == period2).Should().BeTrue();
     }
+
+    [Fact]
+    public void ToDateInterval()
+    {
+        var dateFrom = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var dateTo = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+
+        var period = new Period(dateFrom, dateTo);
+
+        var dateInterval = period.ToDateInterval();
+
+        dateInterval.Start.Seconds.Should().Be(dateFrom);
+        dateInterval.End.Seconds.Should().Be(dateTo);
+    }
 }
