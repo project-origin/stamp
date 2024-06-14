@@ -26,13 +26,13 @@ public record CertificateMarkedAsIssuedEvent
     public required List<CertificateHashedAttribute> HashedAttributes { get; init; }
 }
 
-public class CertificateMarkedAsIssuedEventHandler : IConsumer<CertificateMarkedAsIssuedEvent>
+public class SendToWalletConsumer : IConsumer<CertificateMarkedAsIssuedEvent>
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<CertificateMarkedAsIssuedEventHandler> _logger;
+    private readonly ILogger<SendToWalletConsumer> _logger;
 
-    public CertificateMarkedAsIssuedEventHandler(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, ILogger<CertificateMarkedAsIssuedEventHandler> logger)
+    public SendToWalletConsumer(IHttpClientFactory httpClientFactory, IUnitOfWork unitOfWork, ILogger<SendToWalletConsumer> logger)
     {
         _httpClientFactory = httpClientFactory;
         _unitOfWork = unitOfWork;
@@ -88,17 +88,17 @@ public class CertificateMarkedAsIssuedEventHandler : IConsumer<CertificateMarked
     }
 }
 
-public class CertificateMarkedAsIssuedEventHandlerDefinition : ConsumerDefinition<CertificateMarkedAsIssuedEventHandler>
+public class SendToWalletConsumerDefinition : ConsumerDefinition<SendToWalletConsumer>
 {
     private readonly RetryOptions _retryOptions;
 
-    public CertificateMarkedAsIssuedEventHandlerDefinition(IOptions<RetryOptions> options)
+    public SendToWalletConsumerDefinition(IOptions<RetryOptions> options)
     {
         _retryOptions = options.Value;
     }
 
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<CertificateMarkedAsIssuedEventHandler> consumerConfigurator,
+        IConsumerConfigurator<SendToWalletConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r

@@ -41,7 +41,7 @@ public class OutboxPollingWorkerTests
     public async Task ShouldPublishAndDeleteMessages()
     {
         var privateKey = new Secp256k1Algorithm().GenerateNewPrivateKey();
-        var payloadObj = new CertificateCreatedEvent
+        var payloadObj = new CertificateStoredEvent
         {
             CertificateId = Guid.NewGuid(),
             CertificateType = GranularCertificateType.Production,
@@ -59,7 +59,7 @@ public class OutboxPollingWorkerTests
         {
             Created = DateTimeOffset.Now.ToUtcTime(),
             JsonPayload = JsonSerializer.Serialize(payloadObj),
-            MessageType = typeof(CertificateCreatedEvent).ToString(),
+            MessageType = typeof(CertificateStoredEvent).ToString(),
             Id = Guid.NewGuid()
         };
         using var tokenSource = new CancellationTokenSource();

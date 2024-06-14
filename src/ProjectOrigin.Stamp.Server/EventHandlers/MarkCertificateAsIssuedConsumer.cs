@@ -20,13 +20,13 @@ public record CertificateIssuedInRegistryEvent
     public required byte[] RandomR { get; init; }
 }
 
-public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssuedInRegistryEvent>
+public class MarkCertificateAsIssuedConsumer : IConsumer<CertificateIssuedInRegistryEvent>
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<CertificateIssuedInRegistryEventHandler> _logger;
+    private readonly ILogger<MarkCertificateAsIssuedConsumer> _logger;
 
-    public CertificateIssuedInRegistryEventHandler(IUnitOfWork unitOfWork,
-        ILogger<CertificateIssuedInRegistryEventHandler> logger)
+    public MarkCertificateAsIssuedConsumer(IUnitOfWork unitOfWork,
+        ILogger<MarkCertificateAsIssuedConsumer> logger)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -72,17 +72,17 @@ public class CertificateIssuedInRegistryEventHandler : IConsumer<CertificateIssu
     }
 }
 
-public class CertificateIssuedInRegistryEventHandlerDefinition : ConsumerDefinition<CertificateIssuedInRegistryEventHandler>
+public class MarkCertificateAsIssuedConsumerDefinition : ConsumerDefinition<MarkCertificateAsIssuedConsumer>
 {
     private readonly RetryOptions _retryOptions;
 
-    public CertificateIssuedInRegistryEventHandlerDefinition(IOptions<RetryOptions> options)
+    public MarkCertificateAsIssuedConsumerDefinition(IOptions<RetryOptions> options)
     {
         _retryOptions = options.Value;
     }
 
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<CertificateIssuedInRegistryEventHandler> consumerConfigurator,
+        IConsumerConfigurator<MarkCertificateAsIssuedConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r

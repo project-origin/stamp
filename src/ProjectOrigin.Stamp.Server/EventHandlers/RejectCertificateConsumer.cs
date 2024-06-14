@@ -15,12 +15,12 @@ public record CertificateFailedInRegistryEvent
     public required string RegistryName { get; init; }
 }
 
-public class CertificateFailedInRegistryEventHandler : IConsumer<CertificateFailedInRegistryEvent>
+public class RejectCertificateConsumer : IConsumer<CertificateFailedInRegistryEvent>
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly ILogger<CertificateFailedInRegistryEventHandler> _logger;
+    private readonly ILogger<RejectCertificateConsumer> _logger;
 
-    public CertificateFailedInRegistryEventHandler(IUnitOfWork unitOfWork, ILogger<CertificateFailedInRegistryEventHandler> logger)
+    public RejectCertificateConsumer(IUnitOfWork unitOfWork, ILogger<RejectCertificateConsumer> logger)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
@@ -52,17 +52,17 @@ public class CertificateFailedInRegistryEventHandler : IConsumer<CertificateFail
     }
 }
 
-public class CertificateFailedInRegistryEventHandlerDefinition : ConsumerDefinition<CertificateFailedInRegistryEventHandler>
+public class RejectCertificateConsumerDefinition : ConsumerDefinition<RejectCertificateConsumer>
 {
     private readonly RetryOptions _retryOptions;
 
-    public CertificateFailedInRegistryEventHandlerDefinition(IOptions<RetryOptions> options)
+    public RejectCertificateConsumerDefinition(IOptions<RetryOptions> options)
     {
         _retryOptions = options.Value;
     }
 
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<CertificateFailedInRegistryEventHandler> consumerConfigurator,
+        IConsumerConfigurator<RejectCertificateConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r

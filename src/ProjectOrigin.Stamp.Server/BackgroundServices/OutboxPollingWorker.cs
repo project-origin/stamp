@@ -49,6 +49,8 @@ public class OutboxPollingWorker : BackgroundService
                     unitOfWork.Rollback();
                 }
             }
+            else
+                await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
         }
     }
 }

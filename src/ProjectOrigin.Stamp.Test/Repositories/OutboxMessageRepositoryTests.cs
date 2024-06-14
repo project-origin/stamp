@@ -26,7 +26,7 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
     public async Task CreateGetAndParseOutboxMessage()
     {
         var privateKey = new Secp256k1Algorithm().GenerateNewPrivateKey();
-        var payloadObj = new CertificateCreatedEvent
+        var payloadObj = new CertificateStoredEvent
         {
             CertificateId = Guid.NewGuid(),
             CertificateType = GranularCertificateType.Production,
@@ -44,7 +44,7 @@ public class OutboxMessageRepositoryTests : IClassFixture<PostgresDatabaseFixtur
         {
             Created = DateTimeOffset.Now.ToUtcTime(),
             JsonPayload = JsonSerializer.Serialize(payloadObj),
-            MessageType = typeof(CertificateCreatedEvent).ToString(),
+            MessageType = typeof(CertificateStoredEvent).ToString(),
             Id = Guid.NewGuid()
         };
 

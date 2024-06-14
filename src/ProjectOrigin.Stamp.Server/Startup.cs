@@ -116,11 +116,11 @@ public class Startup
         {
             o.SetKebabCaseEndpointNameFormatter();
 
-            o.AddConsumer<CertificateCreatedEventHandler, CertificateCreatedEventHandlerDefinition>();
-            o.AddConsumer<CertificateFailedInRegistryEventHandler, CertificateFailedInRegistryEventHandlerDefinition>();
-            o.AddConsumer<CertificateIssuedInRegistryEventHandler, CertificateIssuedInRegistryEventHandlerDefinition>();
-            o.AddConsumer<CertificateMarkedAsIssuedEventHandler, CertificateMarkedAsIssuedEventHandlerDefinition>();
-            o.AddConsumer<CertificateSentToRegistryEventHandler, CertificateSentToRegistryEventHandlerDefinition>();
+            o.AddConsumer<IssueInRegistryConsumer, IssueInRegistryConsumerDefinition>();
+            o.AddConsumer<RejectCertificateConsumer, RejectCertificateConsumerDefinition>();
+            o.AddConsumer<MarkCertificateAsIssuedConsumer, MarkCertificateAsIssuedConsumerDefinition>();
+            o.AddConsumer<SendToWalletConsumer, SendToWalletConsumerDefinition>();
+            o.AddConsumer<WaitForCommittedRegistryTransactionConsumer, WaitForCommittedRegistryTransactionConsumerDefinition>();
 
             o.ConfigureMassTransitTransport(_configuration.GetSection("MessageBroker").GetValid<MessageBrokerOptions>());
         });

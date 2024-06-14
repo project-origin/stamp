@@ -23,12 +23,12 @@ public record CertificateSentToRegistryEvent
     public required byte[] RandomR { get; init; }
 }
 
-public class CertificateSentToRegistryEventHandler : IConsumer<CertificateSentToRegistryEvent>
+public class WaitForCommittedRegistryTransactionConsumer : IConsumer<CertificateSentToRegistryEvent>
 {
-    private readonly ILogger<CertificateSentToRegistryEventHandler> _logger;
+    private readonly ILogger<WaitForCommittedRegistryTransactionConsumer> _logger;
     private readonly RegistryOptions _registryOptions;
 
-    public CertificateSentToRegistryEventHandler(ILogger<CertificateSentToRegistryEventHandler> logger, IOptions<RegistryOptions> registryOptions)
+    public WaitForCommittedRegistryTransactionConsumer(ILogger<WaitForCommittedRegistryTransactionConsumer> logger, IOptions<RegistryOptions> registryOptions)
     {
         _logger = logger;
         _registryOptions = registryOptions.Value;
@@ -93,17 +93,17 @@ public class RegistryTransactionStillProcessingException : Exception
     }
 }
 
-public class CertificateSentToRegistryEventHandlerDefinition : ConsumerDefinition<CertificateSentToRegistryEventHandler>
+public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDefinition<WaitForCommittedRegistryTransactionConsumer>
 {
     private readonly RetryOptions _retryOptions;
 
-    public CertificateSentToRegistryEventHandlerDefinition(IOptions<RetryOptions> options)
+    public WaitForCommittedRegistryTransactionConsumerDefinition(IOptions<RetryOptions> options)
     {
         _retryOptions = options.Value;
     }
 
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<CertificateSentToRegistryEventHandler> consumerConfigurator,
+        IConsumerConfigurator<WaitForCommittedRegistryTransactionConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r

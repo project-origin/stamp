@@ -75,7 +75,7 @@ public class CertificatesController : ControllerBase
             await unitOfWork.CertificateRepository.Create(certificate);
         }
 
-        var payloadObj = new CertificateCreatedEvent
+        var payloadObj = new CertificateStoredEvent
         {
             CertificateId = certificate.Id,
             CertificateType = certificate.CertificateType,
@@ -94,7 +94,7 @@ public class CertificatesController : ControllerBase
             Created = DateTimeOffset.Now.ToUtcTime(),
             Id = Guid.NewGuid(),
             JsonPayload = JsonSerializer.Serialize(payloadObj),
-            MessageType = typeof(CertificateCreatedEvent).ToString()
+            MessageType = typeof(CertificateStoredEvent).ToString()
         });
         unitOfWork.Commit();
 

@@ -16,7 +16,7 @@ using GranularCertificateType = ProjectOrigin.Stamp.Server.Models.GranularCertif
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
 
-public class CertificateCreatedEvent
+public class CertificateStoredEvent
 {
     public required Guid CertificateId { get; init; }
     public required string RegistryName { get; init; }
@@ -31,19 +31,19 @@ public class CertificateCreatedEvent
     public required IEnumerable<CertificateHashedAttribute> HashedAttributes { get; init; }
 }
 
-public class CertificateCreatedEventHandler : IConsumer<CertificateCreatedEvent>
+public class IssueInRegistryConsumer : IConsumer<CertificateStoredEvent>
 {
     private readonly IKeyGenerator _keyGenerator;
     private readonly RegistryOptions _registryOptions;
 
-    public CertificateCreatedEventHandler(IKeyGenerator keyGenerator,
+    public IssueInRegistryConsumer(IKeyGenerator keyGenerator,
         IOptions<RegistryOptions> registryOptions)
     {
         _keyGenerator = keyGenerator;
         _registryOptions = registryOptions.Value;
     }
 
-    public async Task Consume(ConsumeContext<CertificateCreatedEvent> context)
+    public async Task Consume(ConsumeContext<CertificateStoredEvent> context)
     {
         var message = context.Message;
         var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(message.Start);
@@ -80,17 +80,17 @@ public class CertificateCreatedEventHandler : IConsumer<CertificateCreatedEvent>
     }
 }
 
-public class CertificateCreatedEventHandlerDefinition : ConsumerDefinition<CertificateCreatedEventHandler>
+public class IssueInRegistryConsumerDefinition : ConsumerDefinition<IssueInRegistryConsumer>
 {
     private readonly RetryOptions _retryOptions;
 
-    public CertificateCreatedEventHandlerDefinition(IOptions<RetryOptions> options)
+    public IssueInRegistryConsumerDefinition(IOptions<RetryOptions> options)
     {
         _retryOptions = options.Value;
     }
 
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
-        IConsumerConfigurator<CertificateCreatedEventHandler> consumerConfigurator,
+        IConsumerConfigurator<IssueInRegistryConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
         endpointConfigurator.UseMessageRetry(r => r
