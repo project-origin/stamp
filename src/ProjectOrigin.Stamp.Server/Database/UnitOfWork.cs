@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using ProjectOrigin.Stamp.Server.Repositories;
 
@@ -17,7 +16,24 @@ public class UnitOfWork : IUnitOfWork, IDisposable
         }
     }
 
-    private readonly Dictionary<Type, object> _repositories = new Dictionary<Type, object>();
+    private ICertificateRepository _certificateRepository = null!;
+    public ICertificateRepository CertificateRepository
+    {
+        get
+        {
+            return _certificateRepository ??= new CertificateRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+        }
+    }
+
+    private IOutboxMessageRepository _outboxMessageRepository = null!;
+    public IOutboxMessageRepository OutboxMessageRepository
+    {
+        get
+        {
+            return _outboxMessageRepository ??= new OutboxMessageRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+        }
+    }
+
     private readonly Lazy<IDbConnection> _lazyConnection;
     private Lazy<IDbTransaction> _lazyTransaction;
     private bool _disposed = false;
@@ -70,8 +86,6 @@ public class UnitOfWork : IUnitOfWork, IDisposable
             _lazyTransaction.Value.Dispose();
 
         _lazyTransaction = new Lazy<IDbTransaction>(_lazyConnection.Value.BeginTransaction);
-
-        _repositories.Clear();
     }
 
     public void Dispose()
@@ -98,7 +112,5 @@ public class UnitOfWork : IUnitOfWork, IDisposable
                 _lazyConnection.Value.Dispose();
             }
         }
-
-        _repositories.Clear();
     }
 }

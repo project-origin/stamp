@@ -48,6 +48,10 @@
   </Target>
 
   <ItemGroup>
+    <None Remove="Database\Postgres\Scripts\0002.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="../Protos/common.proto" Link="Protos\common.proto">
       <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v1.3.0/src/Protos/common.proto</SourceUrl>
     </Protobuf>
@@ -57,6 +61,12 @@
     <Protobuf Include="../Protos/electricity.proto" Link="Protos\electricity.proto">
       <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v1.3.0/src/Protos/electricity.proto</SourceUrl>
     </Protobuf>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Database\Postgres\Scripts\0002.sql">
+      <LogicalName>Scripts.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
