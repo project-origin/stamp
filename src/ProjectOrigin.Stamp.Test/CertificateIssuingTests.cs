@@ -105,7 +105,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
     }
 
     [Fact]
-    public async Task WhenCertificateWithMeteringPointIdStartAndEndAlreadyExists()
+    public async Task WhenCertificateWithMeteringPointIdStartAndEndAlreadyExists_Conflict()
     {
         var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
 
