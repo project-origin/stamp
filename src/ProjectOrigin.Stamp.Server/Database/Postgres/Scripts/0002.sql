@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS Certificates (
     grid_area VARCHAR(256) NOT NULL,
     issued_state integer NOT NULL,
     rejection_reason VARCHAR(1024) NULL,
+    metering_point_id VARCHAR(256) NOT NULL,
+    UNIQUE (metering_point_id, start_date, end_date),
     PRIMARY KEY(id, registry_name)
 );
 
