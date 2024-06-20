@@ -71,40 +71,6 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
     }
 
     [Fact]
-    public async Task CannotDetermineWalletEndpointPosition_BadRequest()
-    {
-        var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
-
-        var endpointRef = await walletClient.CreateWalletAndEndpoint();
-
-        var client = _fixture.CreateHttpClient();
-        var recipientId = await client.AddRecipient(endpointRef);
-
-        var gsrn = Some.Gsrn();
-        var cert = new CertificateDto
-        {
-            Id = Guid.NewGuid(),
-            Start = DateTimeOffset.UtcNow.RoundToLatestHour().AddSeconds(32).ToUnixTimeSeconds(),
-            End = DateTimeOffset.UtcNow.AddHours(1).RoundToLatestHourLong(),
-            GridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key,
-            Quantity = 1234,
-            Type = CertificateType.Production,
-            ClearTextAttributes = new Dictionary<string, string>
-            {
-                { "fuelCode", "F01040100" },
-                { "techCode", "T010000" }
-            },
-            HashedAttributes = new List<HashedAttribute>
-            {
-                new () { Key = "assetId", Value = gsrn }
-            }
-        };
-
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
-    }
-
-    [Fact]
     public async Task WhenCertificateWithMeteringPointIdStartAndEndAlreadyExists_Conflict()
     {
         var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());

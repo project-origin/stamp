@@ -43,9 +43,6 @@ public class CertificatesController : ControllerBase
         if (period == null)
             return BadRequest("Start date must be before end date.");
 
-        if (WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(request.Certificate.Start) == null)
-            return BadRequest("Start date must be rounded to nearest minute.");
-
         if (await unitOfWork.CertificateRepository.CertificateExists(request.MeteringPointId, period))
             return Conflict("Certificate with this metering point id, start and end time already exists.");
 
