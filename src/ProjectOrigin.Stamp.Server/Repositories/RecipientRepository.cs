@@ -10,6 +10,7 @@ public interface IRecipientRepository
 {
     Task<int> Create(Recipient recipient);
     Task<Recipient?> Get(Guid id);
+    Task<uint> GetNextWalletEndpointPosition(Guid recipientId);
 }
 
 public class RecipientRepository : IRecipientRepository
@@ -42,5 +43,16 @@ public class RecipientRepository : IRecipientRepository
                 FROM recipients
                 WHERE id = @Id",
             new { Id = id });
+    }
+
+    public Task<uint> GetNextWalletEndpointPosition(Guid recipientId)
+    {
+        return _connection.ExecuteScalarAsync<uint>(
+            @"SELECT *
+              FROM IncrementNumberForId(@id);",
+            new
+            {
+                id = recipientId
+            });
     }
 }

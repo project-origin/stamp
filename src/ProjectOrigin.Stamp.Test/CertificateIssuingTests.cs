@@ -46,7 +46,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var client = _fixture.CreateHttpClient();
         var recipientId = await client.AddRecipient(endpointRef);
 
-        var gsrn = "561234567890";
+        var gsrn = Some.Gsrn();
         var cert = new CertificateDto
         {
             Id = Guid.NewGuid(),
@@ -66,12 +66,12 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
-    public async Task CannotDetermineWalletEndpointPosition_BadRequest()
+    public async Task WhenCertificateWithMeteringPointIdStartAndEndAlreadyExists_Conflict()
     {
         var walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
 
@@ -80,11 +80,11 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var client = _fixture.CreateHttpClient();
         var recipientId = await client.AddRecipient(endpointRef);
 
-        var gsrn = "561234567890";
+        var gsrn = Some.Gsrn();
         var cert = new CertificateDto
         {
             Id = Guid.NewGuid(),
-            Start = DateTimeOffset.UtcNow.RoundToLatestHour().AddSeconds(32).ToUnixTimeSeconds(),
+            Start = DateTimeOffset.UtcNow.RoundToLatestHourLong(),
             End = DateTimeOffset.UtcNow.AddHours(1).RoundToLatestHourLong(),
             GridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key,
             Quantity = 1234,
@@ -100,8 +100,30 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
-        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var cert2 = new CertificateDto
+        {
+            Id = Guid.NewGuid(),
+            Start = cert.Start,
+            End = cert.End,
+            GridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key,
+            Quantity = 1234,
+            Type = CertificateType.Production,
+            ClearTextAttributes = new Dictionary<string, string>
+            {
+                { "fuelCode", "F01040100" },
+                { "techCode", "T010000" }
+            },
+            HashedAttributes = new List<HashedAttribute>
+            {
+                new () { Key = "assetId", Value = gsrn }
+            }
+        };
+
+        var response2 = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert2);
+        response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
     [Fact]
@@ -114,7 +136,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var client = _fixture.CreateHttpClient();
         var recipientId = await client.AddRecipient(endpointRef);
 
-        var gsrn = "561234567890";
+        var gsrn = Some.Gsrn();
         var cert = new CertificateDto
         {
             Id = Guid.NewGuid(),
@@ -134,10 +156,10 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
+        response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, "1234", cert);
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
@@ -146,7 +168,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
     {
         var client = _fixture.CreateHttpClient();
 
-        var gsrn = "561234567890";
+        var gsrn = Some.Gsrn();
         var cert = new CertificateDto
         {
             Id = Guid.NewGuid(),
@@ -166,7 +188,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(Guid.NewGuid(), _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
+        var response = await client.PostCertificate(Guid.NewGuid(), _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -182,7 +204,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var client = _fixture.CreateHttpClient();
         var recipientId = await client.AddRecipient(endpointRef);
 
-        var gsrn = "561234567890";
+        var gsrn = Some.Gsrn();
         var cert = new CertificateDto
         {
             Id = Guid.NewGuid(),
@@ -202,7 +224,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         var certs = await walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any());
@@ -237,7 +259,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var client = _fixture.CreateHttpClient();
         var recipientId = await client.AddRecipient(endpointRef);
 
-        var gsrn = "561234567890";
+        var gsrn = Some.Gsrn();
         const int certsCount = 5;
         var certs = Enumerable.Range(0, certsCount)
             .Select(i => new CertificateDto
@@ -262,7 +284,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
 
         foreach (var cert in certs)
         {
-            var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, cert);
+            var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
             response.StatusCode.Should().Be(HttpStatusCode.Accepted);
         }
 

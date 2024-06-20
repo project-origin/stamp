@@ -42,4 +42,17 @@ public class RecipientRepositoryTests : IClassFixture<PostgresDatabaseFixture>
         queriedRecipient.WalletEndpointReferenceEndpoint.Should().Be(recipient.WalletEndpointReferenceEndpoint);
         queriedRecipient.WalletEndpointReferencePublicKey.Export().ToArray().Should().BeEquivalentTo(recipient.WalletEndpointReferencePublicKey.Export().ToArray());
     }
+
+    [Fact]
+    public async Task GetNextWalletEndpointPosition()
+    {
+        var recipientId = Guid.NewGuid();
+        var position = await _repository.GetNextWalletEndpointPosition(recipientId);
+
+        position.Should().Be(1);
+
+        position = await _repository.GetNextWalletEndpointPosition(recipientId);
+
+        position.Should().Be(2);
+    }
 }

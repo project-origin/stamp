@@ -3,6 +3,7 @@ using Npgsql;
 using ProjectOrigin.Stamp.Server.Repositories;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using ProjectOrigin.Stamp.Server.Models;
+using ProjectOrigin.Stamp.Server.ValueObjects;
 using Xunit;
 
 namespace ProjectOrigin.Stamp.Test.Repositories;
@@ -38,7 +39,8 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
             CertificateType = GranularCertificateType.Production,
             StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Quantity = 1234,
-            RegistryName = "Energinet.dk"
+            RegistryName = "Energinet.dk",
+            MeteringPointId = Some.Gsrn()
         };
 
         cert.Reject("TestReason");
@@ -74,7 +76,8 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
             CertificateType = GranularCertificateType.Production,
             StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Quantity = 1234,
-            RegistryName = "Energinet.dk"
+            RegistryName = "Energinet.dk",
+            MeteringPointId = Some.Gsrn()
         };
 
         await _repository.Create(cert);
@@ -102,7 +105,8 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
             CertificateType = GranularCertificateType.Production,
             StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             Quantity = 1234,
-            RegistryName = "Energinet.dk"
+            RegistryName = "Energinet.dk",
+            MeteringPointId = Some.Gsrn()
         };
 
         await _repository.Create(cert);
@@ -116,5 +120,65 @@ public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
         queriedCert.Should().NotBeNull();
         queriedCert!.IssuedState.Should().Be(cert.IssuedState);
         queriedCert.RejectionReason.Should().Be(cert.RejectionReason);
+    }
+
+    [Fact]
+    public async Task Create_WhenSameMeteringPointIdAndPeriod_ExpectException()
+    {
+        var cert = new GranularCertificate
+        {
+            EndDate = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            GridArea = "DK1",
+            ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" } },
+            HashedAttributes = new List<CertificateHashedAttribute>(),
+            Id = Guid.NewGuid(),
+            CertificateType = GranularCertificateType.Production,
+            StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            Quantity = 1234,
+            RegistryName = "Energinet.dk",
+            MeteringPointId = Some.Gsrn()
+        };
+
+        await _repository.Create(cert);
+
+        var cert2 = new GranularCertificate
+        {
+            EndDate = cert.EndDate,
+            GridArea = "DK1",
+            ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" } },
+            HashedAttributes = new List<CertificateHashedAttribute>(),
+            Id = Guid.NewGuid(),
+            CertificateType = GranularCertificateType.Production,
+            StartDate = cert.StartDate,
+            Quantity = 1234,
+            RegistryName = "Energinet.dk",
+            MeteringPointId = cert.MeteringPointId
+        };
+
+        await _repository.Invoking(r => r.Create(cert2)).Should().ThrowAsync<PostgresException>();
+    }
+
+    [Fact]
+    public async Task CertificateExists()
+    {
+        var cert = new GranularCertificate
+        {
+            EndDate = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds(),
+            GridArea = "DK1",
+            ClearTextAttributes = new Dictionary<string, string>() { { "TechCode", "T12345" } },
+            HashedAttributes = new List<CertificateHashedAttribute>(),
+            Id = Guid.NewGuid(),
+            CertificateType = GranularCertificateType.Production,
+            StartDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            Quantity = 1234,
+            RegistryName = "Energinet.dk",
+            MeteringPointId = Some.Gsrn()
+        };
+
+        await _repository.Create(cert);
+
+        var result = await _repository.CertificateExists(cert.MeteringPointId, new Period(cert.StartDate, cert.EndDate));
+
+        result.Should().BeTrue();
     }
 }

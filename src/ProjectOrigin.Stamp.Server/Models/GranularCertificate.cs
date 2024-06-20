@@ -39,6 +39,7 @@ public record GranularCertificate
     public required long StartDate { get; init; }
     public required long EndDate { get; init; }
     public required string GridArea { get; init; }
+    public required string MeteringPointId { get; init; }
     public required Dictionary<string, string> ClearTextAttributes { get; init; } = new();
     public required List<CertificateHashedAttribute> HashedAttributes { get; init; } = new();
 
