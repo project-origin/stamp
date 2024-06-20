@@ -48,11 +48,6 @@
   </Target>
 
   <ItemGroup>
-    <None Remove="Database\Postgres\Scripts\0002.sql" />
-    <None Remove="Database\Postgres\Scripts\0003.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Protobuf Include="../Protos/common.proto" Link="Protos\common.proto">
       <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v1.3.0/src/Protos/common.proto</SourceUrl>
     </Protobuf>
