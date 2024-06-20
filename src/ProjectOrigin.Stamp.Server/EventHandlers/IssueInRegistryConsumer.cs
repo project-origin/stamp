@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using ProjectOrigin.Electricity.V1;
 using ProjectOrigin.PedersenCommitment;
 using ProjectOrigin.Registry.V1;
+using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Exceptions;
 using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Models;
@@ -34,23 +35,24 @@ public class CertificateStoredEvent
 public class IssueInRegistryConsumer : IConsumer<CertificateStoredEvent>
 {
     private readonly IKeyGenerator _keyGenerator;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly RegistryOptions _registryOptions;
 
     public IssueInRegistryConsumer(IKeyGenerator keyGenerator,
-        IOptions<RegistryOptions> registryOptions)
+        IOptions<RegistryOptions> registryOptions,
+        IUnitOfWork unitOfWork)
     {
         _keyGenerator = keyGenerator;
+        _unitOfWork = unitOfWork;
         _registryOptions = registryOptions.Value;
     }
 
     public async Task Consume(ConsumeContext<CertificateStoredEvent> context)
     {
         var message = context.Message;
-        var endpointPosition = WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(message.Period.DateFrom);
-        if (!endpointPosition.HasValue)
-            throw new WalletException($"Cannot determine wallet endpoint position for certificate with id {message.CertificateId}");
+        var endpointPosition = await _unitOfWork.RecipientRepository.GetNextWalletEndpointPosition(message.RecipientId);
 
-        var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(message.WalletEndpointReferencePublicKey, endpointPosition.Value, message.GridArea);
+        var (ownerPublicKey, issuerKey) = _keyGenerator.GenerateKeyInfo(message.WalletEndpointReferencePublicKey, endpointPosition, message.GridArea);
 
         var commitment = new SecretCommitmentInfo(message.Quantity);
 
@@ -74,7 +76,7 @@ public class IssueInRegistryConsumer : IConsumer<CertificateStoredEvent>
             CertificateId = message.CertificateId,
             RegistryName = message.RegistryName,
             RecipientId = message.RecipientId,
-            WalletEndpointPosition = endpointPosition.Value,
+            WalletEndpointPosition = endpointPosition,
             RandomR = commitment.BlindingValue.ToArray()
         });
     }
