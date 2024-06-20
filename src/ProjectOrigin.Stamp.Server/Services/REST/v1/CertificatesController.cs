@@ -46,6 +46,9 @@ public class CertificatesController : ControllerBase
         if (await unitOfWork.CertificateRepository.CertificateExists(request.MeteringPointId, period))
             return Conflict("Certificate with this metering point id, start and end time already exists.");
 
+        if (await unitOfWork.CertificateRepository.CertificateExists(request.MeteringPointId, period))
+            return Conflict("Certificate with this metering point id, start and end time already exists.");
+
         var recipient = await unitOfWork.RecipientRepository.Get(request.RecipientId);
 
         if (recipient == null)
