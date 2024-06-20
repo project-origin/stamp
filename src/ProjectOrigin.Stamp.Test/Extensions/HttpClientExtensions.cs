@@ -35,13 +35,14 @@ public static class HttpClientExtensions
         return (await response.Content.ReadJson<CreateRecipientResponse>())!.Id;
     }
 
-    public static async Task<HttpResponseMessage> PostCertificate(this HttpClient client, Guid recipientId, string registryName, CertificateDto certificate)
+    public static async Task<HttpResponseMessage> PostCertificate(this HttpClient client, Guid recipientId, string registryName, string meteringPointId, CertificateDto certificate)
     {
         var request = new CreateCertificateRequest
         {
             RecipientId = recipientId,
             RegistryName = registryName,
-            Certificate = certificate
+            Certificate = certificate,
+            MeteringPointId = meteringPointId
         };
 
         return await client.PostAsJsonAsync("/stamp-api/v1/certificates", request);

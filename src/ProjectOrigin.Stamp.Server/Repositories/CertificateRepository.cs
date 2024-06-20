@@ -5,6 +5,7 @@ using Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ProjectOrigin.Stamp.Server.ValueObjects;
 
 namespace ProjectOrigin.Stamp.Server.Repositories;
 
@@ -13,6 +14,7 @@ public interface ICertificateRepository
     Task Create(GranularCertificate certificate);
     Task<GranularCertificate?> Get(string registryName, Guid certificateId);
     Task SetState(Guid certificateId, string registryName, IssuedState state, string? rejectionReason = null);
+    Task<bool> CertificateExists(string meteringPointId, Period period);
 }
 
 public class CertificateRepository : ICertificateRepository
@@ -27,8 +29,8 @@ public class CertificateRepository : ICertificateRepository
     public async Task Create(GranularCertificate certificate)
     {
         await _connection.ExecuteAsync(
-            @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area, issued_state, rejection_reason)
-              VALUES (@id, @registryName, @certificateType, @quantity, @startDate, @endDate, @gridArea, @issuedState, @rejectionReason)",
+            @"INSERT INTO Certificates(id, registry_name, certificate_type, quantity, start_date, end_date, grid_area, issued_state, rejection_reason, metering_point_id)
+              VALUES (@id, @registryName, @certificateType, @quantity, @startDate, @endDate, @gridArea, @issuedState, @rejectionReason, @meteringPointId)",
             new
             {
                 certificate.Id,
@@ -39,7 +41,8 @@ public class CertificateRepository : ICertificateRepository
                 endDate = certificate.EndDate,
                 certificate.GridArea,
                 certificate.IssuedState,
-                certificate.RejectionReason
+                certificate.RejectionReason,
+                certificate.MeteringPointId
             });
 
         foreach (var atr in certificate.ClearTextAttributes)
@@ -114,6 +117,23 @@ public class CertificateRepository : ICertificateRepository
             });
 
         return certsDictionary.Values.FirstOrDefault();
+    }
+
+    public async Task<bool> CertificateExists(string meteringPointId, Period period)
+    {
+        var cert = await _connection.QueryFirstOrDefaultAsync<GranularCertificate>(
+            @"SELECT * FROM Certificates
+              WHERE metering_point_id = @meteringPointId
+              AND start_date = @startDate
+              AND end_date = @endDate",
+            new
+            {
+                meteringPointId,
+                startDate = period.DateFrom,
+                endDate = period.DateTo
+            });
+
+        return cert != null;
     }
 
     public async Task SetState(Guid certificateId, string registryName, IssuedState state, string? rejectionReason = null)

@@ -43,6 +43,12 @@ messageBroker:
     username:
     # password defines the password to use to connect to the rabbitmq server
     password:
+    
+  retry:
+    # number of times Stamp consumers retrys messages on errors with a 3 minute incrementing interval.
+    defaultFirstLevelRetryCount: 5
+    # number of times the registry is polled for transaction status before giving up with a 1 second interval.
+    registryTransactionStillProcessingRetryCount: 100
 
 # stamp defines the deployment configuration for the stamp server
 stamp:
@@ -54,6 +60,12 @@ registries: []
   # example
   # - name: test
   #   address: http://test-registry:80
+
+ # List issuer private keys
+issuerPrivateKeyPems: []
+  # example
+  # - gridArea: narnia
+  #   key: 1234567890
 
 # persistence defines the persistence configuration for the stamp server
 persistence:

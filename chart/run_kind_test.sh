@@ -9,8 +9,33 @@ cluster_name=stamp-test
 # Ensures script fails if something goes wrong.
 set -eo pipefail
 
-# cleanup - delete temp_folder and cluster
-trap 'rm -fr $temp_folder; kind delete cluster -n ${cluster_name} >/dev/null 2>&1' 0
+# define cleanup function
+cleanup() {
+    rm -fr $temp_folderx
+    kind delete cluster -n ${cluster_name} >/dev/null 2>&1
+}
+
+# define debug function
+debug() {
+    echo -e "\nDebugging information:"
+    echo -e "\nHelm status:"
+    helm status stamp -n stamp --show-desc --show-resources
+
+    echo -e "\nDeployment description:"
+    kubectl describe deployment -n stamp po-stamp-deployment
+
+    POD_NAMES=$(kubectl get pods -n stamp -l app=po-stamp -o jsonpath="{.items[*].metadata.name}")
+    # Loop over the pods and print their logs
+    for POD_NAME in $POD_NAMES
+    do
+        echo -e "\nLogs for $POD_NAME:"
+        kubectl logs -n stamp $POD_NAME
+    done
+}
+
+# trap cleanup function on script exit
+trap 'cleanup' 0
+trap 'debug; cleanup' ERR
 
 # define variables
 temp_folder=$(mktemp -d)

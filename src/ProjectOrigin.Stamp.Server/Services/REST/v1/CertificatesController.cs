@@ -46,6 +46,9 @@ public class CertificatesController : ControllerBase
         if (WalletEndpointPositionCalculator.CalculateWalletEndpointPosition(request.Certificate.Start) == null)
             return BadRequest("Start date must be rounded to nearest minute.");
 
+        if (await unitOfWork.CertificateRepository.CertificateExists(request.MeteringPointId, period))
+            return Conflict("Certificate with this metering point id, start and end time already exists.");
+
         var recipient = await unitOfWork.RecipientRepository.Get(request.RecipientId);
 
         if (recipient == null)
@@ -66,6 +69,7 @@ public class CertificatesController : ControllerBase
                 StartDate = request.Certificate.Start,
                 EndDate = request.Certificate.End,
                 GridArea = request.Certificate.GridArea,
+                MeteringPointId = request.MeteringPointId,
                 ClearTextAttributes = request.Certificate.ClearTextAttributes,
                 HashedAttributes = request.Certificate.HashedAttributes.Select(ha => new CertificateHashedAttribute
                 {
@@ -117,6 +121,11 @@ public record CreateCertificateRequest
     /// The registry used to issues the certificate.
     /// </summary>
     public required string RegistryName { get; init; }
+
+    /// <summary>
+    /// The id of the metering point used to produce the certificate.
+    /// </summary>
+    public required string MeteringPointId { get; init; }
 
     /// <summary>
     /// The certificate to issue.
