@@ -59,16 +59,4 @@
     </Protobuf>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Database\Postgres\Scripts\0002.sql">
-      <LogicalName>Scripts.%(Filename)%(Extension)</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Database\Postgres\Scripts\0003.sql">
-      <LogicalName>Scripts.%(Filename)%(Extension)</LogicalName>
-    </EmbeddedResource>
-  </ItemGroup>
-
 </Project>
