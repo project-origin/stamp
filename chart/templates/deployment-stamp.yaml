@@ -74,10 +74,19 @@ spec:
           {{- else}}
             {{- fail "messageBroker type must be one of (inMemory | rabbitmq | rabbitmqOperator)" }}
           {{- end }}
+            - name: Retry__DefaultFirstLevelRetryCount
+              value: {{ .Values.messageBroker.retry.defaultFirstLevelRetryCount }}
+            - name: Retry__RegistryTransactionStillProcessingRetryCount
+              value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingRetryCount }}
 
           {{- range .Values.registries }}
-            - name: RegistryUrls__{{ .name }}
+            - name: Registry__RegistryUrls__{{ .name }}
               value: {{ .address }}
+          {{- end }}
+          
+          {{- range .Values.issuerPrivateKeyPems }}
+            - name: Registry__IssuerPrivateKeyPems__{{ .gridArea }}
+              value: {{ .key }}
           {{- end }}
 
           {{- if eq .Values.persistence.type "CloudNativePG" }}
