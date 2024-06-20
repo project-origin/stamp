@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Extensions;
-using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.ValueObjects;
 
@@ -42,9 +41,6 @@ public class CertificatesController : ControllerBase
         var period = Period.Parse(request.Certificate.Start, request.Certificate.End);
         if (period == null)
             return BadRequest("Start date must be before end date.");
-
-        if (await unitOfWork.CertificateRepository.CertificateExists(request.MeteringPointId, period))
-            return Conflict("Certificate with this metering point id, start and end time already exists.");
 
         if (await unitOfWork.CertificateRepository.CertificateExists(request.MeteringPointId, period))
             return Conflict("Certificate with this metering point id, start and end time already exists.");
