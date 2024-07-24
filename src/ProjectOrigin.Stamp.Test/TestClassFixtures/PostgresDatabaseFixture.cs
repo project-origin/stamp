@@ -45,7 +45,7 @@ public class PostgresDatabaseFixture : IAsyncLifetime
 
         var upgrader = new PostgresUpgrader(
             loggerFactory.CreateLogger<PostgresUpgrader>(),
-            Options.Create(new PostgresOptions
+            Microsoft.Extensions.Options.Options.Create(new PostgresOptions
             {
                 ConnectionString = _postgreSqlContainer.GetConnectionString()
             }));
@@ -53,7 +53,7 @@ public class PostgresDatabaseFixture : IAsyncLifetime
         await upgrader.Upgrade();
     }
 
-    public IDbConnectionFactory GetConnectionFactory() => new PostgresConnectionFactory(Options.Create(new PostgresOptions
+    public IDbConnectionFactory GetConnectionFactory() => new PostgresConnectionFactory(Microsoft.Extensions.Options.Options.Create(new PostgresOptions
     {
         ConnectionString = _postgreSqlContainer.GetConnectionString()
     }));
