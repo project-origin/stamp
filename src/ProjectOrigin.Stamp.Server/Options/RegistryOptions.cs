@@ -10,8 +10,6 @@ namespace ProjectOrigin.Stamp.Server.Options;
 
 public class RegistryOptions
 {
-    public const string Registry = nameof(Registry);
-
     [Required]
     public Dictionary<string, string> RegistryUrls { get; set; } = new Dictionary<string, string>();
 
@@ -39,7 +37,8 @@ public class RegistryOptions
             return ToPrivateKey(issuerPrivateKeyPem);
         }
 
-        throw new NotSupportedException($"Not supported GridArea {gridArea}");
+        string gridAreas = string.Join(", ", IssuerPrivateKeyPems.Keys);
+        throw new NotSupportedException($"Not supported GridArea {gridArea}. Supported GridAreas are: " + gridAreas);
     }
 
     public string GetRegistryUrl(string name)
@@ -49,18 +48,10 @@ public class RegistryOptions
             return url;
         }
 
-        throw new NotSupportedException($"RegistryName {name} not supported");
+        string registries = string.Join(", ", RegistryUrls.Keys);
+        throw new NotSupportedException($"RegistryName {name} not supported. Supported registries are: " + registries);
     }
 
     private static IPrivateKey ToPrivateKey(byte[] key)
         => new Ed25519Algorithm().ImportPrivateKeyText(Encoding.UTF8.GetString(key));
-}
-
-public static class OptionsExtensions
-{
-    public static void AddRegistryOptions(this IServiceCollection services) =>
-        services.AddOptions<RegistryOptions>()
-            .BindConfiguration(RegistryOptions.Registry)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
 }

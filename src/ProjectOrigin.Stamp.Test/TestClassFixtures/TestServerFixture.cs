@@ -115,12 +115,12 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
 
                 foreach (var reg in RegistryOptions.RegistryUrls)
                 {
-                    envVariables.Add($"Registry:RegistryUrls:{reg.Key}", reg.Value);
+                    envVariables.Add($"RegistryUrls:{reg.Key}", reg.Value);
                 }
 
                 foreach (var pem in RegistryOptions.IssuerPrivateKeyPems)
                 {
-                    envVariables.Add($"Registry:IssuerPrivateKeyPems:{pem.Key}", Convert.ToBase64String(pem.Value));
+                    envVariables.Add($"IssuerPrivateKeyPems:{pem.Key}", Convert.ToBase64String(pem.Value));
                 }
 
                 ConfigureHostConfiguration(envVariables);

@@ -74,7 +74,11 @@ public class Startup
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddRegistryOptions();
+        services.AddOptions<RegistryOptions>()
+            .Bind(_configuration)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddHttpClient();
 
         services.ConfigurePersistance(_configuration);

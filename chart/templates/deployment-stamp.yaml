@@ -80,12 +80,12 @@ spec:
               value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingRetryCount | quote }}
 
           {{- range .Values.registries }}
-            - name: Registry__RegistryUrls__{{ .name }}
+            - name: RegistryUrls__{{ .name }}
               value: {{ .address }}
           {{- end }}
-          
+
           {{- range .Values.issuerPrivateKeyPems }}
-            - name: Registry__IssuerPrivateKeyPems__{{ .gridArea }}
+            - name: IssuerPrivateKeyPems__{{ .gridArea }}
               value: {{ .key }}
           {{- end }}
 
