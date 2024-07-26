@@ -39,8 +39,15 @@ public class OutboxMessageRepository : IOutboxMessageRepository
     public Task<OutboxMessage?> GetFirst()
     {
         return _connection.QueryFirstOrDefaultAsync<OutboxMessage>(
-            @"SELECT id, message_type, json_payload, created
-                FROM OutboxMessages");
+            """
+            SELECT
+                id, message_type, json_payload, created
+            FROM
+                OutboxMessages
+            FOR UPDATE SKIP LOCKED
+            LIMIT 1
+            """
+            );
     }
 
     public async Task Delete(Guid outboxMessageId)
