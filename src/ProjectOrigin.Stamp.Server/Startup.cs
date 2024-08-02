@@ -120,6 +120,12 @@ public class Startup
         {
             o.SetKebabCaseEndpointNameFormatter();
 
+            o.AddConfigureEndpointsCallback((name, cfg) =>
+            {
+                if (cfg is IRabbitMqReceiveEndpointConfigurator rmq)
+                    rmq.SetQuorumQueue(3);
+            });
+
             o.AddConsumer<IssueInRegistryConsumer, IssueInRegistryConsumerDefinition>();
             o.AddConsumer<RejectCertificateConsumer, RejectCertificateConsumerDefinition>();
             o.AddConsumer<MarkCertificateAsIssuedConsumer, MarkCertificateAsIssuedConsumerDefinition>();
