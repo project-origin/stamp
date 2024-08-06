@@ -11,12 +11,29 @@ namespace ProjectOrigin.Stamp.Server.Options;
 
 public class RegistryOptions
 {
+    private const string RegistryUrlPrefix = "RegistryUrls__";
 
     [Required]
     public Dictionary<string, string> RegistryUrls { get; set; } = new();
 
     [Required]
     public Dictionary<string, byte[]> IssuerPrivateKeyPems { get; set; } = new();
+
+    public RegistryOptions()
+    {
+        RegistryUrls = Environment.GetEnvironmentVariables()
+            .Cast<DictionaryEntry>()
+            .Where(e => e.Key is string key && key.StartsWith(RegistryUrlPrefix))
+            .ToDictionary(
+                e => ConvertUnderscoreToHyphen(((string)e.Key).Substring(RegistryUrlPrefix.Length)),
+                e => e.Value?.ToString() ?? ""
+            );
+    }
+
+    private string ConvertUnderscoreToHyphen(string input)
+    {
+        return input.Replace("_", "-");
+    }
 
     public bool TryGetIssuerKey(string gridArea, out IPrivateKey? issuerKey)
     {
