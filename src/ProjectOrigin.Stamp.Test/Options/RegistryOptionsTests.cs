@@ -4,6 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using ProjectOrigin.Stamp.Server;
 using ProjectOrigin.Stamp.Server.Options;
 using Xunit;
 
@@ -27,11 +31,23 @@ public class RegistryOptionsTests
         {
             Environment.SetEnvironmentVariable($"RegistryUrls__{registryName}", expectedUrl);
 
-            var registryOptions = new RegistryOptions();
+            var services = new ServiceCollection();
 
-            registryOptions.RegistryUrls.Should().ContainKey(registryName);
-            registryOptions.RegistryUrls[registryName].Should().Be(expectedUrl);
-            registryOptions.GetRegistryUrl(registryName).Should().Be(expectedUrl);
+            var startup = new Startup(new ConfigurationBuilder().Build());
+            var registryUrls = startup.LoadRegistryUrlsWithHyphens();
+
+            services.Configure<RegistryOptions>(options =>
+            {
+                options.RegistryUrls = registryUrls;
+            });
+
+            var serviceProvider = services.BuildServiceProvider();
+            var options = serviceProvider.GetService<IOptions<RegistryOptions>>()?.Value;
+
+            options.Should().NotBeNull();
+            options!.RegistryUrls.Should().ContainKey(registryName);
+            options.RegistryUrls[registryName].Should().Be(expectedUrl);
+            options.GetRegistryUrl(registryName).Should().Be(expectedUrl);
         }
         finally
         {

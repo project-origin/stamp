@@ -4,7 +4,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -39,8 +42,37 @@ public class Startup
         _configuration = configuration;
     }
 
+    public Dictionary<string, string> RegistryUrls { get; set; } = new();
+
+    public Dictionary<string, string> LoadRegistryUrlsWithHyphens()
+    {
+        var registryUrls = new Dictionary<string, string>();
+
+        foreach (var envVar in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
+        {
+            string key = envVar.Key.ToString();
+            string value = envVar.Value.ToString();
+
+            if (key.StartsWith("RegistryUrls__"))
+            {
+                string registryKey = key.Substring("RegistryUrls__".Length);
+
+                registryUrls[registryKey] = value;
+            }
+        }
+
+        return registryUrls;
+    }
+
     public void ConfigureServices(IServiceCollection services)
     {
+        var registryUrls = LoadRegistryUrlsWithHyphens();
+
+        services.Configure<RegistryOptions>(options =>
+        {
+            options.RegistryUrls = registryUrls;
+        });
+
         services.AddGrpc();
 
         var algorithm = new Secp256k1Algorithm();
