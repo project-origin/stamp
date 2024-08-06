@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "stamp.fullname" . }}-test-registry-urls"
+  labels:
+    {{- include "stamp.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: test
+      image: busybox
+      command: ["/bin/sh"]
+      args:
+        - -c
+        - |
+          expected_vars=(
+            "RegistryUrls__kebab-case=https://kebab-case-registry.com:80"
+            "RegistryUrls__camelCase=https://camel-case-registry.com:443"
+          )
+          for var in "${expected_vars[@]}"; do
+            key="${var%%=*}"
+            value="${var#*=}"
+            if [ "${!key}" != "$value" ]; then
+              echo "Error: Expected $key=$value, but got ${!key}"
+              exit 1
+            fi
+          done
+          echo "All registry URL environment variables are set correctly."
+      env:
+        {{- range .Values.registries }}
+        - name: RegistryUrls__{{ .name }}
+          value: {{ .address }}
+        {{- end }}
+  restartPolicy: Never

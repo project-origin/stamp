@@ -1,20 +1,34 @@
-using Microsoft.Extensions.DependencyInjection;
-using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
-using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text;
+using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
+using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 
 namespace ProjectOrigin.Stamp.Server.Options;
 
 public class RegistryOptions
 {
-    [Required]
-    public Dictionary<string, string> RegistryUrls { get; set; } = new Dictionary<string, string>();
+    private const string RegistryUrlPrefix = "RegistryUrls__";
 
     [Required]
-    public Dictionary<string, byte[]> IssuerPrivateKeyPems { get; set; } = new Dictionary<string, byte[]>();
+    public Dictionary<string, string> RegistryUrls { get; set; } = new();
+
+    [Required]
+    public Dictionary<string, byte[]> IssuerPrivateKeyPems { get; set; } = new();
+
+    public RegistryOptions()
+    {
+        RegistryUrls = Environment.GetEnvironmentVariables()
+            .Cast<DictionaryEntry>()
+            .Where(e => e.Key is string key && key.StartsWith(RegistryUrlPrefix))
+            .ToDictionary(
+                e => ((string)e.Key).Substring(RegistryUrlPrefix.Length),
+                e => e.Value?.ToString() ?? ""
+            );
+    }
 
     public bool TryGetIssuerKey(string gridArea, out IPrivateKey? issuerKey)
     {

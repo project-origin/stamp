@@ -11,6 +11,34 @@ namespace ProjectOrigin.Stamp.Test.Options;
 
 public class RegistryOptionsTests
 {
+    [Theory]
+    [InlineData("kebab-case", "https://kebab-case.com:80")]
+    [InlineData("camelCase", "https://camel-case-registry.com:443")]
+    [InlineData("under_score", "http://under-score-registry:80")]
+    [InlineData("BIGLETTERS", "http://big-letters-registry.com")]
+    [InlineData("smallletters", "http://small-letters-registry.com")]
+    [InlineData("Mixed-Case_with-Hyphens", "http://mixed-case-registry.com")]
+    [InlineData("123numeric", "http://numeric-registry.com")]
+    [InlineData("special@#$characters", "http://special-characters-registry.com")]
+    [InlineData("A1T_Godt-fr@-HaVeT", "http://alt-godt-fra-havet-registry.com")]
+    public void ShouldCorrectlyMapRegistryUrlFromHelmChart(string registryName, string expectedUrl)
+    {
+        try
+        {
+            Environment.SetEnvironmentVariable($"RegistryUrls__{registryName}", expectedUrl);
+
+            var registryOptions = new RegistryOptions();
+
+            registryOptions.RegistryUrls.Should().ContainKey(registryName);
+            registryOptions.RegistryUrls[registryName].Should().Be(expectedUrl);
+            registryOptions.GetRegistryUrl(registryName).Should().Be(expectedUrl);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable($"RegistryUrls__{registryName}", null);
+        }
+    }
+
     [Fact]
     public void ShouldTellSupportedRegistriesOnNotFoundRegistry()
     {
