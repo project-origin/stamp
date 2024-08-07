@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,21 +14,18 @@ public class RegistryOptionsTests
     [Fact]
     public void ShouldTellSupportedRegistriesOnNotFoundRegistry()
     {
-        // Arrange
         var registryOptions = new RegistryOptions
         {
-            RegistryUrls = new Dictionary<string, string>
+            Registries = new List<Server.Options.Registry>
             {
-                { "Narnia", "http://foo" },
-                { "TestRegistry", "http://foo" },
-                { "death-star", "http://foo" }
+                new()  { Name = "Narnia", Address = "http://foo"},
+                new()  {Name = "TestRegistry", Address = "http://foo" },
+                new() {Name = "death-star", Address = "http://foo" }
             }
         };
 
-        // Act
         var sut = () => registryOptions.GetRegistryUrl("Narnia2");
 
-        // Assert
         sut.Should().Throw<NotSupportedException>()
             .WithMessage("RegistryName Narnia2 not supported. Supported registries are: Narnia, TestRegistry, death-star");
     }
@@ -54,28 +47,5 @@ public class RegistryOptionsTests
 
         sut.Should().Throw<NotSupportedException>()
             .WithMessage("Not supported GridArea Narnia2. Supported GridAreas are: Narnia, TestArea, death-star");
-    }
-
-    [Fact]
-    public void ShouldCorrectlyConvertUnderscoresToHyphensInRegistryUrls()
-    {
-
-        Environment.SetEnvironmentVariable("RegistryUrls__energy-origin", "http://kebab-registry.com");
-        Environment.SetEnvironmentVariable("RegistryUrls__camelCase", "http://camel-case-registry.com");
-
-        var configuration = new ConfigurationBuilder()
-            .AddEnvironmentVariables()
-            .Build();
-
-        var serviceProvider = new ServiceCollection()
-            .Configure<RegistryOptions>(configuration)
-            .BuildServiceProvider();
-
-        var options = serviceProvider.GetService<IOptions<RegistryOptions>>();
-
-        options!.Value.RegistryUrls.Should().ContainKey("energy-origin");
-        options.Value.RegistryUrls[key: "energy-origin"].Should().Be("http://kebab-registry.com");
-        options!.Value.RegistryUrls.Should().ContainKey("camelCase");
-        options.Value.RegistryUrls[key: "camelCase"].Should().Be("http://camel-case-registry.com");
     }
 }
