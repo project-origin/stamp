@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using ProjectOrigin.Stamp.Server.Options;
 using Xunit;
 
@@ -51,5 +54,28 @@ public class RegistryOptionsTests
 
         sut.Should().Throw<NotSupportedException>()
             .WithMessage("Not supported GridArea Narnia2. Supported GridAreas are: Narnia, TestArea, death-star");
+    }
+
+    [Fact]
+    public void ShouldCorrectlyConvertUnderscoresToHyphensInRegistryUrls()
+    {
+
+        Environment.SetEnvironmentVariable("RegistryUrls__kebab-case", "http://kebab-registry.com");
+        Environment.SetEnvironmentVariable("RegistryUrls__camelCase", "http://camel-case-registry.com");
+
+        var configuration = new ConfigurationBuilder()
+            .AddEnvironmentVariables()
+            .Build();
+
+        var serviceProvider = new ServiceCollection()
+            .Configure<RegistryOptions>(configuration)
+            .BuildServiceProvider();
+
+        var options = serviceProvider.GetService<IOptions<RegistryOptions>>();
+
+        options!.Value.RegistryUrls.Should().ContainKey("kebab-case");
+        options.Value.RegistryUrls[key: "kebab-case"].Should().Be("http://kebab-registry.com");
+        options!.Value.RegistryUrls.Should().ContainKey("camelCase");
+        options.Value.RegistryUrls[key: "camelCase"].Should().Be("http://camel-case-registry.com");
     }
 }

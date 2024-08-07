@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 
@@ -12,26 +11,11 @@ namespace ProjectOrigin.Stamp.Server.Options;
 
 public class RegistryOptions
 {
-    private const string RegistryUrlPrefix = "RegistryUrls__";
-
     [Required]
     public Dictionary<string, string> RegistryUrls { get; set; } = new();
 
     [Required]
     public Dictionary<string, byte[]> IssuerPrivateKeyPems { get; set; } = new();
-
-    public RegistryOptions()
-    {
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var registryUrlsJson = Environment.GetEnvironmentVariable("RegistryUrls");
-        RegistryUrls = (!string.IsNullOrEmpty(registryUrlsJson)
-            ? JsonSerializer.Deserialize<Dictionary<string, string>>(registryUrlsJson, options)
-            : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase))!;
-    }
 
     public bool TryGetIssuerKey(string gridArea, out IPrivateKey? issuerKey)
     {
