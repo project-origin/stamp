@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 
@@ -21,18 +22,15 @@ public class RegistryOptions
 
     public RegistryOptions()
     {
-        RegistryUrls = Environment.GetEnvironmentVariables()
-            .Cast<DictionaryEntry>()
-            .Where(e => e.Key is string key && key.StartsWith(RegistryUrlPrefix))
-            .ToDictionary(
-                e => ConvertUnderscoreToHyphen(((string)e.Key).Substring(RegistryUrlPrefix.Length)),
-                e => e.Value?.ToString() ?? ""
-            );
-    }
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
 
-    private string ConvertUnderscoreToHyphen(string input)
-    {
-        return input.Replace("_", "-");
+        var registryUrlsJson = Environment.GetEnvironmentVariable("RegistryUrls");
+        RegistryUrls = (!string.IsNullOrEmpty(registryUrlsJson)
+            ? JsonSerializer.Deserialize<Dictionary<string, string>>(registryUrlsJson, options)
+            : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase))!;
     }
 
     public bool TryGetIssuerKey(string gridArea, out IPrivateKey? issuerKey)

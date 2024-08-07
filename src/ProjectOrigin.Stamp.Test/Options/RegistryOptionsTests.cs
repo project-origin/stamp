@@ -52,20 +52,4 @@ public class RegistryOptionsTests
         sut.Should().Throw<NotSupportedException>()
             .WithMessage("Not supported GridArea Narnia2. Supported GridAreas are: Narnia, TestArea, death-star");
     }
-
-    [Fact]
-    public void ShouldCorrectlyConvertUnderscoresToHyphensInRegistryUrls()
-    {
-        var environmentVariableKey = "RegistryUrls__energy_origin";
-        var environmentVariableValue = "https://energy-origin.com";
-
-        Environment.SetEnvironmentVariable(environmentVariableKey, environmentVariableValue);
-
-        var registryOptions = new RegistryOptions();
-
-        registryOptions.RegistryUrls.Should().ContainKey("energy-origin");
-        registryOptions.RegistryUrls["energy-origin"].Should().Be(environmentVariableValue);
-
-        Environment.SetEnvironmentVariable(environmentVariableKey, null);
-    }
 }
