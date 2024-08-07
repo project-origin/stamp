@@ -8,15 +8,6 @@ using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Extensions;
 using Serilog;
 
-// Get all environment variables
-IDictionary environmentVariables = Environment.GetEnvironmentVariables();
-
-// Iterate through all environment variables and print them
-foreach (DictionaryEntry entry in environmentVariables)
-{
-    Console.WriteLine($"{entry.Key}: {entry.Value}");
-}
-
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false)
