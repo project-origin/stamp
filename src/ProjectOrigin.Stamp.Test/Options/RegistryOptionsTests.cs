@@ -60,7 +60,7 @@ public class RegistryOptionsTests
     public void ShouldCorrectlyConvertUnderscoresToHyphensInRegistryUrls()
     {
 
-        Environment.SetEnvironmentVariable("RegistryUrls__kebab-case", "http://kebab-registry.com");
+        Environment.SetEnvironmentVariable("RegistryUrls__energy-origin", "http://kebab-registry.com");
         Environment.SetEnvironmentVariable("RegistryUrls__camelCase", "http://camel-case-registry.com");
 
         var configuration = new ConfigurationBuilder()
@@ -73,8 +73,8 @@ public class RegistryOptionsTests
 
         var options = serviceProvider.GetService<IOptions<RegistryOptions>>();
 
-        options!.Value.RegistryUrls.Should().ContainKey("kebab-case");
-        options.Value.RegistryUrls[key: "kebab-case"].Should().Be("http://kebab-registry.com");
+        options!.Value.RegistryUrls.Should().ContainKey("energy-origin");
+        options.Value.RegistryUrls[key: "energy-origin"].Should().Be("http://kebab-registry.com");
         options!.Value.RegistryUrls.Should().ContainKey("camelCase");
         options.Value.RegistryUrls[key: "camelCase"].Should().Be("http://camel-case-registry.com");
     }
