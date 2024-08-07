@@ -79,8 +79,8 @@ spec:
             - name: Retry__RegistryTransactionStillProcessingRetryCount
               value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingRetryCount | quote }}
 
-          {{- range .Values.registryUrls }}
-            - name: {{ .name }}
+          {{- range .Values.registries }}
+            - name: RegistryUrls__{{ .name }}
               value: {{ .address }}
           {{- end }}
 
