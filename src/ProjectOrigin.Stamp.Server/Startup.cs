@@ -75,6 +75,7 @@ public class Startup
             .ValidateOnStart();
 
         services.AddOptions<RegistryOptions>()
+            .Bind(_configuration)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
