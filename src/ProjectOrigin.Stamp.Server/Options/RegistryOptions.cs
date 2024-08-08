@@ -1,17 +1,23 @@
-using Microsoft.Extensions.DependencyInjection;
-using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
-using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text;
+using ProjectOrigin.HierarchicalDeterministicKeys.Implementations;
+using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 
 namespace ProjectOrigin.Stamp.Server.Options;
+
+public class Registry
+{
+    public string Name { get; set; }
+    public string Address { get; set; }
+}
 
 public class RegistryOptions
 {
     [Required]
-    public Dictionary<string, string> RegistryUrls { get; set; } = new Dictionary<string, string>();
+    public IList<Registry> Registries { get; set; } = new List<Registry>();
 
     [Required]
     public Dictionary<string, byte[]> IssuerPrivateKeyPems { get; set; } = new Dictionary<string, byte[]>();
@@ -43,12 +49,13 @@ public class RegistryOptions
 
     public string GetRegistryUrl(string name)
     {
-        if (RegistryUrls.TryGetValue(name, out var url))
+        var foundRegistry = Registries.SingleOrDefault(registry => registry.Name == name);
+        if (foundRegistry is not null)
         {
-            return url;
+            return foundRegistry.Address;
         }
 
-        string registries = string.Join(", ", RegistryUrls.Keys);
+        string registries = string.Join(", ", Registries.Select(registry => registry.Name));
         throw new NotSupportedException($"RegistryName {name} not supported. Supported registries are: " + registries);
     }
 

@@ -67,9 +67,9 @@ public class ProjectOriginStack : RegistryFixture
             { "DK1", Encoding.UTF8.GetBytes(Dk1IssuerKey.ExportPkixText()) },
             { "DK2", Encoding.UTF8.GetBytes(Dk2IssuerKey.ExportPkixText()) },
         },
-        RegistryUrls = new Dictionary<string, string>
+        Registries = new List<Server.Options.Registry>
         {
-            { RegistryName, RegistryUrl }
+          new() {Name = RegistryName, Address = RegistryUrl }
         }
     };
 

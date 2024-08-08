@@ -66,7 +66,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
@@ -100,7 +100,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         var cert2 = new CertificateDto
@@ -122,7 +122,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response2 = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert2);
+        var response2 = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, gsrn, cert2);
         response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
@@ -156,10 +156,10 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
-        response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, "1234", cert);
+        response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, "1234", cert);
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
     }
 
@@ -188,7 +188,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(Guid.NewGuid(), _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+        var response = await client.PostCertificate(Guid.NewGuid(), _fixture.RegistryOptions.Registries.First().Name, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -224,7 +224,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             }
         };
 
-        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+        var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, gsrn, cert);
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         var certs = await walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any());
@@ -233,7 +233,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         var queriedCert = certs.First();
 
         queriedCert.FederatedStreamId.StreamId.Should().Be(cert.Id);
-        queriedCert.FederatedStreamId.Registry.Should().Be(_fixture.RegistryOptions.RegistryUrls.First().Key);
+        queriedCert.FederatedStreamId.Registry.Should().Be(_fixture.RegistryOptions.Registries.First().Name);
         queriedCert.Quantity.Should().Be(cert.Quantity);
         queriedCert.Start.Should().Be(cert.Start);
         queriedCert.End.Should().Be(cert.End);
@@ -284,7 +284,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
 
         foreach (var cert in certs)
         {
-            var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.RegistryUrls.First().Key, gsrn, cert);
+            var response = await client.PostCertificate(recipientId, _fixture.RegistryOptions.Registries.First().Name, gsrn, cert);
             response.StatusCode.Should().Be(HttpStatusCode.Accepted);
         }
 
@@ -296,7 +296,7 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         for (int i = 0; i < certsCount; i++)
         {
             granularCertificates[i].FederatedStreamId.StreamId.Should().Be(certs[i].Id);
-            granularCertificates[i].FederatedStreamId.Registry.Should().Be(_fixture.RegistryOptions.RegistryUrls.First().Key);
+            granularCertificates[i].FederatedStreamId.Registry.Should().Be(_fixture.RegistryOptions.Registries.First().Name);
             granularCertificates[i].Start.Should().Be(certs[i].Start);
             granularCertificates[i].End.Should().Be(certs[i].End);
             granularCertificates[i].GridArea.Should().Be(certs[i].GridArea);

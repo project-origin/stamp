@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using ProjectOrigin.Stamp.Server.Options;
 using Xunit;
 
@@ -11,24 +10,22 @@ namespace ProjectOrigin.Stamp.Test.Options;
 
 public class RegistryOptionsTests
 {
+
     [Fact]
     public void ShouldTellSupportedRegistriesOnNotFoundRegistry()
     {
-        // Arrange
         var registryOptions = new RegistryOptions
         {
-            RegistryUrls = new Dictionary<string, string>
+            Registries = new List<Server.Options.Registry>
             {
-                { "Narnia", "http://foo" },
-                { "TestRegistry", "http://foo" },
-                { "death-star", "http://foo" }
+                new()  { Name = "Narnia", Address = "http://foo"},
+                new()  {Name = "TestRegistry", Address = "http://foo" },
+                new() {Name = "death-star", Address = "http://foo" }
             }
         };
 
-        // Act
         var sut = () => registryOptions.GetRegistryUrl("Narnia2");
 
-        // Assert
         sut.Should().Throw<NotSupportedException>()
             .WithMessage("RegistryName Narnia2 not supported. Supported registries are: Narnia, TestRegistry, death-star");
     }
