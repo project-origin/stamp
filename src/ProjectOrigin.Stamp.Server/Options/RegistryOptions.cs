@@ -4,6 +4,7 @@ using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text;
 
 namespace ProjectOrigin.Stamp.Server.Options;
@@ -43,11 +44,20 @@ public class RegistryOptions
 
     public string GetRegistryUrl(string name)
     {
+        // First, try to get the value directly (case-sensitive)
         if (RegistryUrls.TryGetValue(name, out var url))
         {
             return url;
         }
 
+        // If not found, try case-insensitive search
+        var key = RegistryUrls.Keys.FirstOrDefault(k => k.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (key != null)
+        {
+            return RegistryUrls[key];
+        }
+
+        // If still not found, throw the exception
         string registries = string.Join(", ", RegistryUrls.Keys);
         throw new NotSupportedException($"RegistryName {name} not supported. Supported registries are: " + registries);
     }

@@ -34,6 +34,25 @@ public class RegistryOptionsTests
     }
 
     [Fact]
+    public void ShouldAccessRegistryUrlDirectlyFromDictionary()
+    {
+        var expectedUrl = "http://energy-origin-registry:80";
+        var registryOptions = new RegistryOptions
+        {
+            RegistryUrls = new Dictionary<string, string>
+            {
+                { "energy-origin", expectedUrl },
+                { "other-registry", "http://other-registry:80" }
+            }
+        };
+
+        var url = registryOptions.RegistryUrls["energy-origin"];
+
+        url.Should().Be(expectedUrl);
+    }
+
+
+    [Fact]
     public void ShouldTellSupportedGridAreasOnNotFoundGridArea()
     {
         var registryOptions = new RegistryOptions
