@@ -21,6 +21,20 @@ try
 {
     Log.Information("Application starting.");
 
+    Log.Information("Logging all environment variables:");
+    foreach (var envVar in Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>())
+    {
+        Log.Information($"Env: {envVar.Key} = {envVar.Value}");
+    }
+
+    // Log specific configuration values
+    Log.Information("Logging RegistryUrls configuration:");
+    var registryUrls = configuration.GetSection("RegistryUrls").GetChildren();
+    foreach (var registry in registryUrls)
+    {
+        Log.Information($"RegistryUrl: {registry.Key} = {registry.Value}");
+    }
+
     if (args.Contains("--migrate"))
     {
         Log.Information("Starting repository migration.");
