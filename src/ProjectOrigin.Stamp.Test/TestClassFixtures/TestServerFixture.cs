@@ -65,7 +65,7 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
 
         public RegistryOptions RegistryOptions { get; set; } = new()
         {
-            RegistryUrls = new Dictionary<string, string>(),
+            Registries = new List<Server.Options.Registry>(),
             IssuerPrivateKeyPems = new Dictionary<string, byte[]>()
         };
 
@@ -113,9 +113,11 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
                     {"Retry:RegistryTransactionStillProcessingRetryCount", RetryOptions.RegistryTransactionStillProcessingRetryCount.ToString()}
                 };
 
-                foreach (var reg in RegistryOptions.RegistryUrls)
+                for (var i = 0; i < RegistryOptions.Registries.Count; i++)
                 {
-                    envVariables.Add($"RegistryUrls:{reg.Key}", reg.Value);
+                    var registry = RegistryOptions.Registries[i];
+                    envVariables.Add($"Registries:{i}:Name", registry.Name);
+                    envVariables.Add($"Registries:{i}:Address", registry.Address);
                 }
 
                 foreach (var pem in RegistryOptions.IssuerPrivateKeyPems)

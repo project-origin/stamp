@@ -79,9 +79,11 @@ spec:
             - name: Retry__RegistryTransactionStillProcessingRetryCount
               value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingRetryCount | quote }}
 
-          {{- range .Values.registries }}
-            - name: RegistryUrls__{{ .name }}
-              value: {{ .address }}
+          {{- range $i, $registry := .Values.registries }}
+            - name: Registries__{{ $i }}__name
+              value: {{ $registry.name }}
+            - name: Registries__{{ $i }}__address
+              value: {{ $registry.address }}
           {{- end }}
 
           {{- range .Values.issuerPrivateKeyPems }}
