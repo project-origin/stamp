@@ -84,7 +84,7 @@ public class RegistryFixture : IAsyncLifetime
                 .WithEnvironment("Network__ConfigurationUri", configurationUri)
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
-                    .UntilMessageIsLogged("Application started", o => o.WithTimeout(TimeSpan.FromSeconds(30)))
+                    .UntilMessageIsLogged("Application started")
                 )
                 .Build();
 
@@ -116,7 +116,7 @@ public class RegistryFixture : IAsyncLifetime
             .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetConnectionString())
             .WithWaitStrategy(
                 Wait.ForUnixContainer()
-                    .UntilMessageIsLogged("Application started", o => o.WithTimeout(TimeSpan.FromSeconds(30)))
+                    .UntilMessageIsLogged("Application started")
             /* .UntilPortIsAvailable(GrpcPort) */
             )
             .Build()
