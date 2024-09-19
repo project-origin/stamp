@@ -57,7 +57,8 @@ public class RegistryFixture : IAsyncLifetime
         Dk1IssuerKey = Algorithms.Ed25519.GenerateNewPrivateKey();
         Dk2IssuerKey = Algorithms.Ed25519.GenerateNewPrivateKey();
 
-        var config = $"""
+        var configFile = Path.GetTempFileName() + ".yaml";
+        File.WriteAllText(configFile, $"""
         registries:
           {registryName}:
             url: http://{RegistryAlias}:{GrpcPort}
@@ -68,23 +69,20 @@ public class RegistryFixture : IAsyncLifetime
           DK2:
             issuerKeys:
               - publicKey: "{Convert.ToBase64String(Encoding.UTF8.GetBytes(Dk2IssuerKey.PublicKey.ExportPkixText()))}"
-        """;
-
-        var tempFilePath = Path.GetTempFileName() + ".yaml";
-        var configurationUri = "file:///app/tmp/" + Path.GetFileName(tempFilePath);
-        File.WriteAllText(tempFilePath, config);
+        """);
 
         verifierContainer = new ContainerBuilder()
                 .WithImage(electricityVerifierImage)
                 .WithNetwork(Network)
                 .WithNetworkAliases(VerifierAlias)
-                .WithResourceMapping(tempFilePath, "/app/tmp/")
+                .WithResourceMapping(configFile, "/app/tmp/")
                 .WithPortBinding(GrpcPort, true)
                 .WithCommand("--serve")
-                .WithEnvironment("Network__ConfigurationUri", configurationUri)
+                .WithEnvironment("Network__ConfigurationUri", "file:///app/tmp/" + Path.GetFileName(configFile))
                 .WithWaitStrategy(
                     Wait.ForUnixContainer()
-                    .UntilMessageIsLogged("Application started", o => o.WithTimeout(TimeSpan.FromMinutes(1)))
+                        .UntilPortIsAvailable(GrpcPort, o => o.WithTimeout(TimeSpan.FromMinutes(1)))
+                // .UntilMessageIsLogged("Application started", o => o.WithTimeout(TimeSpan.FromMinutes(1)))
                 )
                 .Build();
 
@@ -116,7 +114,8 @@ public class RegistryFixture : IAsyncLifetime
             .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetConnectionString())
             .WithWaitStrategy(
                 Wait.ForUnixContainer()
-                .UntilMessageIsLogged("Application started", o => o.WithTimeout(TimeSpan.FromMinutes(1)))
+                    .UntilPortIsAvailable(GrpcPort, o => o.WithTimeout(TimeSpan.FromMinutes(1)))
+            // .UntilMessageIsLogged("Application started", o => o.WithTimeout(TimeSpan.FromMinutes(1)))
             )
             .Build()
         );
