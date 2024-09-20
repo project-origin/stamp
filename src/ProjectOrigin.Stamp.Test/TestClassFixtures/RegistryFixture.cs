@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
@@ -70,6 +71,8 @@ public class RegistryFixture : IAsyncLifetime
               - publicKey: "{Convert.ToBase64String(Encoding.UTF8.GetBytes(Dk2IssuerKey.PublicKey.ExportPkixText()))}"
         """);
 
+        var waitForLogRegex = new Regex(@"Application started*.");
+
         verifierContainer = new ContainerBuilder()
                 .WithImage(electricityVerifierImage)
                 .WithNetwork(Network)
@@ -78,10 +81,7 @@ public class RegistryFixture : IAsyncLifetime
                 .WithPortBinding(GrpcPort, true)
                 .WithCommand("--serve")
                 .WithEnvironment("Network__ConfigurationUri", "file:///app/tmp/" + Path.GetFileName(configFile))
-                .WithWaitStrategy(
-                    Wait.ForUnixContainer()
-                        .UntilPortIsAvailable(GrpcPort, o => o.WithTimeout(TimeSpan.FromMinutes(1)))
-                )
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged(waitForLogRegex, o => o.WithTimeout(TimeSpan.FromMinutes(1))))
                 .Build();
 
         registryPostgresContainer = new PostgreSqlBuilder()
@@ -110,10 +110,7 @@ public class RegistryFixture : IAsyncLifetime
             .WithEnvironment("TransactionProcessor__Threads", "5")
             .WithEnvironment("TransactionProcessor__Weight", "10")
             .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetConnectionString())
-            .WithWaitStrategy(
-                Wait.ForUnixContainer()
-                    .UntilPortIsAvailable(GrpcPort, o => o.WithTimeout(TimeSpan.FromMinutes(1)))
-            )
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged(waitForLogRegex, o => o.WithTimeout(TimeSpan.FromMinutes(1))))
             .Build()
         );
     }
