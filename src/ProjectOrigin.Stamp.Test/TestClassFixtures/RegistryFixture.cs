@@ -81,7 +81,6 @@ public class RegistryFixture : IAsyncLifetime
                 .WithPortBinding(GrpcPort, true)
                 .WithCommand("--serve")
                 .WithEnvironment("Network__ConfigurationUri", "file:///app/tmp/" + Path.GetFileName(configFile))
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged(waitForLogRegex, o => o.WithTimeout(TimeSpan.FromMinutes(1))))
                 .Build();
 
         registryPostgresContainer = new PostgreSqlBuilder()
@@ -110,7 +109,6 @@ public class RegistryFixture : IAsyncLifetime
             .WithEnvironment("TransactionProcessor__Threads", "5")
             .WithEnvironment("TransactionProcessor__Weight", "10")
             .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetConnectionString())
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilMessageIsLogged(waitForLogRegex, o => o.WithTimeout(TimeSpan.FromMinutes(1))))
             .Build()
         );
     }
