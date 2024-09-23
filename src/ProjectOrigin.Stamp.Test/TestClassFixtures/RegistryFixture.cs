@@ -1,11 +1,11 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Images;
 using DotNet.Testcontainers.Networks;
 using ProjectOrigin.HierarchicalDeterministicKeys;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
+using ProjectOrigin.Stamp.Test.Extensions;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 using Xunit;
@@ -71,8 +71,6 @@ public class RegistryFixture : IAsyncLifetime
               - publicKey: "{Convert.ToBase64String(Encoding.UTF8.GetBytes(Dk2IssuerKey.PublicKey.ExportPkixText()))}"
         """);
 
-        var waitForLogRegex = new Regex(@"Application started*.");
-
         verifierContainer = new ContainerBuilder()
                 .WithImage(electricityVerifierImage)
                 .WithNetwork(Network)
@@ -81,10 +79,12 @@ public class RegistryFixture : IAsyncLifetime
                 .WithPortBinding(GrpcPort, true)
                 .WithCommand("--serve")
                 .WithEnvironment("Network__ConfigurationUri", "file:///app/tmp/" + Path.GetFileName(configFile))
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilGrpcEndpointIsReady(GrpcPort, "/"))
                 .Build();
 
         registryPostgresContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
             .Build();
 
         registryContainer = new Lazy<IContainer>(() => new ContainerBuilder()
@@ -109,6 +109,7 @@ public class RegistryFixture : IAsyncLifetime
             .WithEnvironment("TransactionProcessor__Threads", "5")
             .WithEnvironment("TransactionProcessor__Weight", "10")
             .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetConnectionString())
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilGrpcEndpointIsReady(GrpcPort, "/"))
             .Build()
         );
     }
