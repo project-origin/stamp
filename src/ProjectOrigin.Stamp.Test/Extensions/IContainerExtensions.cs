@@ -1,13 +1,14 @@
 using System.Net;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
+using Testcontainers.PostgreSql;
 using Xunit.Abstractions;
 
 namespace ProjectOrigin.Stamp.Test.Extensions;
 
-public static class TestContainerExtensions
+public static class IContainerExtensions
 {
-    public static async Task StartAsyncWithLogsAsync(this IContainer container, ITestOutputHelper? outputHelper = null)
+    public static async Task StartWithLoggingAsync(this IContainer container)
     {
         try
         {
@@ -16,9 +17,7 @@ public static class TestContainerExtensions
         catch (Exception e)
         {
             var (stdout, stderr) = await container.GetLogsAsync();
-
-            outputHelper?.WriteLine($"Container logs: Stdout: {stdout}\nStderr:{stderr}\nError: {e}");
-            throw;
+            throw new Exception($"Container logs:\nStdout: {stdout}\nStderr:{stderr}", e);
         }
 
     }
@@ -44,5 +43,22 @@ public static class TestContainerExtensions
                             })
                     , waitStrategyModifier
         );
+    }
+
+    public static string GetLocalConnectionString(this PostgreSqlContainer container, string networkAlias)
+    {
+        var connectionProperties = new Dictionary<string, string>
+        {
+            { "Host", networkAlias },
+            {
+                "Port",
+                ((ushort)5432).ToString()
+            },
+            { "Database", "postgres" },
+            { "Username", "postgres" },
+            { "Password", "postgres" }
+        };
+
+        return string.Join(";", connectionProperties.Select((KeyValuePair<string, string> property) => string.Join("=", property.Key, property.Value)));
     }
 }

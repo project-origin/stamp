@@ -6,6 +6,7 @@ using DotNet.Testcontainers.Networks;
 using ProjectOrigin.HierarchicalDeterministicKeys;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using ProjectOrigin.Stamp.Test.Extensions;
+using ProjectOrigin.TestCommon;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 using Xunit;
@@ -21,20 +22,20 @@ public class RegistryFixture : IAsyncLifetime
     private const string registryName = "TestRegistry";
     private const string RegistryAlias = "registry-container";
     private const string VerifierAlias = "verifier-container";
+    private const string VerifierPostgresAlias = "verifier-postgres-container";
     private const string RabbitMqAlias = "rabbitmq-container";
 
-    private readonly Lazy<IContainer> registryContainer;
+    private readonly IContainer registryContainer;
     private readonly IContainer verifierContainer;
     private readonly Testcontainers.RabbitMq.RabbitMqContainer rabbitMqContainer;
     private readonly PostgreSqlContainer registryPostgresContainer;
     protected readonly INetwork Network;
     private readonly IFutureDockerImage rabbitMqImage;
-
     public const string RegistryName = registryName;
     public IPrivateKey Dk1IssuerKey { get; init; }
     public IPrivateKey Dk2IssuerKey { get; init; }
-    public string RegistryUrl => $"http://{registryContainer.Value.Hostname}:{registryContainer.Value.GetMappedPublicPort(GrpcPort)}";
-    protected string RegistryContainerUrl => $"http://{registryContainer.Value.IpAddress}:{GrpcPort}";
+    public string RegistryUrl => $"http://{registryContainer.Hostname}:{registryContainer.GetMappedPublicPort(GrpcPort)}";
+    protected string RegistryContainerUrl => $"http://{registryContainer.IpAddress}:{GrpcPort}";
 
     public RegistryFixture()
     {
@@ -57,8 +58,7 @@ public class RegistryFixture : IAsyncLifetime
         Dk1IssuerKey = Algorithms.Ed25519.GenerateNewPrivateKey();
         Dk2IssuerKey = Algorithms.Ed25519.GenerateNewPrivateKey();
 
-        var configFile = Path.GetTempFileName() + ".yaml";
-        File.WriteAllText(configFile, $"""
+        var configFile = TempFile.WriteAllText($"""
         registries:
           {registryName}:
             url: http://{RegistryAlias}:{GrpcPort}
@@ -80,14 +80,17 @@ public class RegistryFixture : IAsyncLifetime
                 .WithCommand("--serve")
                 .WithEnvironment("Network__ConfigurationUri", "file:///app/tmp/" + Path.GetFileName(configFile))
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilGrpcEndpointIsReady(GrpcPort, "/"))
+                // .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GrpcPort, o => o.WithTimeout(TimeSpan.FromSeconds(10))))
                 .Build();
 
         registryPostgresContainer = new PostgreSqlBuilder()
             .WithImage("postgres:15")
+            .WithNetwork(Network)
+            .WithNetworkAliases(VerifierPostgresAlias)
             .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(5432))
             .Build();
 
-        registryContainer = new Lazy<IContainer>(() => new ContainerBuilder()
+        registryContainer = new ContainerBuilder()
             .WithImage(registryImage)
             .WithNetwork(Network)
             .WithNetworkAliases(RegistryAlias)
@@ -108,25 +111,24 @@ public class RegistryFixture : IAsyncLifetime
             .WithEnvironment("TransactionProcessor__Servers", "1")
             .WithEnvironment("TransactionProcessor__Threads", "5")
             .WithEnvironment("TransactionProcessor__Weight", "10")
-            .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetConnectionString())
+            .WithEnvironment("ConnectionStrings__Database", registryPostgresContainer.GetLocalConnectionString(VerifierPostgresAlias))
             .WithWaitStrategy(Wait.ForUnixContainer().UntilGrpcEndpointIsReady(GrpcPort, "/"))
-            .Build()
-        );
+            .Build();
     }
 
     public virtual async Task InitializeAsync()
     {
         await rabbitMqImage.CreateAsync();
         await Network.CreateAsync();
-        await rabbitMqContainer.StartAsync();
-        await verifierContainer.StartAsync();
-        await registryPostgresContainer.StartAsync();
-        await registryContainer.Value.StartAsync();
+        await rabbitMqContainer.StartWithLoggingAsync();
+        await verifierContainer.StartWithLoggingAsync();
+        await registryPostgresContainer.StartWithLoggingAsync();
+        await registryContainer.StartWithLoggingAsync();
     }
 
     public virtual async Task DisposeAsync()
     {
-        await registryContainer.Value.StopAsync();
+        await registryContainer.StopAsync();
         await registryPostgresContainer.StopAsync();
         await rabbitMqContainer.StopAsync();
         await verifierContainer.StopAsync();
