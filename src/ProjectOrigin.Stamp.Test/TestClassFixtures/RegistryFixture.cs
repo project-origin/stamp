@@ -6,7 +6,6 @@ using DotNet.Testcontainers.Networks;
 using ProjectOrigin.HierarchicalDeterministicKeys;
 using ProjectOrigin.HierarchicalDeterministicKeys.Interfaces;
 using ProjectOrigin.Stamp.Test.Extensions;
-using ProjectOrigin.TestCommon;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 using Xunit;
@@ -58,7 +57,8 @@ public class RegistryFixture : IAsyncLifetime
         Dk1IssuerKey = Algorithms.Ed25519.GenerateNewPrivateKey();
         Dk2IssuerKey = Algorithms.Ed25519.GenerateNewPrivateKey();
 
-        var configFile = TempFile.WriteAllText($"""
+        var configFile = Path.GetTempFileName() + ".yaml";
+        File.WriteAllText(configFile, $"""
         registries:
           {registryName}:
             url: http://{RegistryAlias}:{GrpcPort}
