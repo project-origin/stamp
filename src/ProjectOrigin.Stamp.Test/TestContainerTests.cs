@@ -45,8 +45,7 @@ public class TestContainerTests
                 .WithPortBinding(GrpcPort, true)
                 .WithCommand("--serve")
                 .WithEnvironment("Network__ConfigurationUri", "file:///app/tmp/" + Path.GetFileName(configFile))
-                // .WithWaitStrategy(Wait.ForUnixContainer().UntilGrpcEndpointIsReady(GrpcPort, "/"))
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(GrpcPort, o => o.WithTimeout(TimeSpan.FromSeconds(10))))
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilGrpcEndpointIsReady(GrpcPort, "/"))
                 .Build();
 
         await verifierContainer.StartAsyncWithLogsAsync(outputHelper);
