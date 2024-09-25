@@ -94,7 +94,7 @@ public static class Registry
                 Registry = registryName,
                 StreamId = new Common.V1.Uuid { Value = certificateId.ToString() }
             },
-            PayloadType = IssuedEvent.Descriptor.FullName,
+            PayloadType = WithdrawnEvent.Descriptor.FullName,
             PayloadSha512 = ByteString.CopyFrom(SHA512.HashData(withdrawnEvent.ToByteArray())),
             Nonce = Guid.NewGuid().ToString(),
         };

@@ -22,7 +22,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
     {
         // Arrange
         var certificateId = Guid.NewGuid();
-        var registryName = "Energinet.dk";
+        var registryName = "Narnia";
 
         // Act
         await _repository.Create(registryName, certificateId);

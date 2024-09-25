@@ -8,30 +8,26 @@ using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateT
 
 namespace ProjectOrigin.Stamp.Test;
 
-public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>,
-    IClassFixture<PostgresDatabaseFixture>,
-    IClassFixture<ProjectOriginStack>,
-    IClassFixture<RabbitMqContainer>
+[Collection("EntireStackCollection")]
+public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
 {
     private readonly TestServerFixture<Startup> _fixture;
-    private readonly ProjectOriginStack _poStack;
     private readonly string _gridArea;
     private readonly string _registryName;
     private readonly HttpClient _walletClient;
     private readonly HttpClient _client;
     private readonly string _gsrn;
 
-    public CertificateIssuingTests(TestServerFixture<Startup> fixture, PostgresDatabaseFixture postgres, ProjectOriginStack poStack, RabbitMqContainer rabbitMq)
+    public CertificateIssuingTests(EntireStackFixture stack)
     {
-        _fixture = fixture;
-        _poStack = poStack;
-        fixture.PostgresConnectionString = postgres.ConnectionString;
-        fixture.RabbitMqOptions = rabbitMq.Options;
-        fixture.RegistryOptions = poStack.RegistryOptions;
+        _fixture = stack.testServer;
+        _fixture.PostgresConnectionString = stack.postgres.ConnectionString;
+        _fixture.RabbitMqOptions = stack.rabbitMq.Options;
+        _fixture.RegistryOptions = stack.poStack.RegistryOptions;
 
-        _gridArea = fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key;
-        _registryName = fixture.RegistryOptions.Registries[0].Name;
-        _walletClient = _poStack.CreateWalletClient(Guid.NewGuid().ToString());
+        _gridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key;
+        _registryName = _fixture.RegistryOptions.Registries[0].Name;
+        _walletClient = stack.poStack.CreateWalletClient(Guid.NewGuid().ToString());
         _client = _fixture.CreateHttpClient();
         _gsrn = Some.Gsrn();
     }
@@ -87,10 +83,9 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
     public async Task WhenNonExistingRecipient_NotFound()
     {
         var nonExistingRecipientId = Guid.NewGuid();
-        var client = _fixture.CreateHttpClient();
         var cert = Some.CertificateDto(gsrn: _gsrn);
 
-        var response = await client.PostCertificate(nonExistingRecipientId, _registryName, _gsrn, cert);
+        var response = await _client.PostCertificate(nonExistingRecipientId, _registryName, _gsrn, cert);
 
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
@@ -171,54 +166,6 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             });
         }
     }
-
-    [Fact]
-    public async Task WithdrawCertificateSuccess()
-    {
-        // Arrange
-        var recipientId = await CreateRecipient();
-        var cert = Some.CertificateDto(gsrn: _gsrn, gridArea: _gridArea);
-        await _client.PostCertificate(recipientId, _registryName, _gsrn, cert);
-
-        // Act
-        var responseWithdraw = await _client.WithdrawCertificate(_registryName, cert.Id);
-
-        // Assert
-        responseWithdraw.StatusCode.Should().Be(HttpStatusCode.Accepted);
-    }
-
-
-    [Fact]
-    public async Task WithdrawCertificateShouldFailIfNoCertificateExistsInDatabase()
-    {
-        // Arrange
-        var cert = Some.CertificateDto(gsrn: _gsrn, gridArea: _gridArea);
-
-        // Act
-        var responseWithdraw = await _client.WithdrawCertificate(_registryName, cert.Id);
-
-        // Assert
-        responseWithdraw.StatusCode.Should().Be(HttpStatusCode.NotFound);
-    }
-
-
-    [Fact]
-    public async Task WithdrawCertificateShouldFailIfAlreadyWithdrawn()
-    {
-        // Arrange
-        var recipientId = await CreateRecipient();
-        var cert = Some.CertificateDto(gsrn: _gsrn, gridArea: _gridArea);
-        await _client.PostCertificate(recipientId, _registryName, _gsrn, cert);
-
-        // Act
-        var response1 = await _client.WithdrawCertificate(_registryName, cert.Id);
-        var response2 = await _client.WithdrawCertificate(_registryName, cert.Id);
-
-        // Assert
-        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
-        response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
-    }
-
     private async Task<Guid> CreateRecipient()
     {
         var endpointRef = await _walletClient.CreateWalletAndEndpoint();

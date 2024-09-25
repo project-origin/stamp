@@ -61,7 +61,7 @@ public class WithdrawnCertificatesController : ControllerBase
         await unitOfWork.WithdrawnCertificateRepository.Create(registry, certificateId);
         unitOfWork.Commit();
 
-        return Accepted(new WithdrawnCertificateResponse
+        return Created($"v1/certificates/{registry}/{certificateId}", new WithdrawnCertificateResponse
         {
             RegistryName = registry,
             CertificateId = certificateId
