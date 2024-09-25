@@ -9,7 +9,7 @@ using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateT
 namespace ProjectOrigin.Stamp.Test;
 
 [Collection("EntireStackCollection")]
-public class WithdrawCertificateControllerTests : IClassFixture<TestServerFixture<Startup>>
+public class WithdrawCertificateControllerTests : IClassFixture<TestServerFixture<Startup>>, IDisposable
 {
     private readonly TestServerFixture<Startup> _fixture;
     private readonly string _gridArea;
@@ -86,4 +86,9 @@ public class WithdrawCertificateControllerTests : IClassFixture<TestServerFixtur
         return await client.AddRecipient(endpointRef);
     }
 
+    public void Dispose()
+    {
+        _walletClient.Dispose();
+        _client.Dispose();
+    }
 }
