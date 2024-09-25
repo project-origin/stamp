@@ -9,7 +9,7 @@ using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateT
 namespace ProjectOrigin.Stamp.Test;
 
 [Collection("EntireStackCollection")]
-public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>, IDisposable
+public class CertificateIssuingTests : IDisposable
 {
     private readonly TestServerFixture<Startup> _fixture;
     private readonly string _gridArea;

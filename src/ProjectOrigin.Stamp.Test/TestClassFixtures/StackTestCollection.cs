@@ -2,6 +2,8 @@
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using Xunit;
 
+namespace ProjectOrigin.Stamp.Test.TestClassFixtures;
+
 [CollectionDefinition("EntireStackCollection")]
 public class EntireStackCollection : ICollectionFixture<EntireStackFixture>
 {
