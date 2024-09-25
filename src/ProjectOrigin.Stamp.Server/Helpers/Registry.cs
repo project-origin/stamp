@@ -85,6 +85,32 @@ public static class Registry
         return transaction;
     }
 
+    public static Transaction CreateTransaction(this WithdrawnEvent withdrawnEvent, string registryName, Guid certificateId, IPrivateKey issuerKey)
+    {
+        var header = new TransactionHeader
+        {
+            FederatedStreamId = new Common.V1.FederatedStreamId
+            {
+                Registry = registryName,
+                StreamId = new Common.V1.Uuid { Value = certificateId.ToString() }
+            },
+            PayloadType = IssuedEvent.Descriptor.FullName,
+            PayloadSha512 = ByteString.CopyFrom(SHA512.HashData(withdrawnEvent.ToByteArray())),
+            Nonce = Guid.NewGuid().ToString(),
+        };
+
+        var headerSignature = issuerKey.Sign(header.ToByteArray()).ToArray();
+
+        var transaction = new Transaction
+        {
+            Header = header,
+            HeaderSignature = ByteString.CopyFrom(headerSignature),
+            Payload = withdrawnEvent.ToByteString()
+        };
+
+        return transaction;
+    }
+
     public static string ToShaId(this Transaction transaction) =>
          Convert.ToBase64String(SHA256.HashData(transaction.ToByteArray()));
 

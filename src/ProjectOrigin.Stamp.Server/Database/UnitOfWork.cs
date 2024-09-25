@@ -6,13 +6,14 @@ namespace ProjectOrigin.Stamp.Server.Database;
 
 public class UnitOfWork : IUnitOfWork, IDisposable
 {
+    private const string TransactionIsNullExceptionMessage = "Transaction is null.";
     private IRecipientRepository _recipientRepository = null!;
 
     public IRecipientRepository RecipientRepository
     {
         get
         {
-            return _recipientRepository ??= new RecipientRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+            return _recipientRepository ??= new RecipientRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException(TransactionIsNullExceptionMessage));
         }
     }
 
@@ -21,7 +22,7 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     {
         get
         {
-            return _certificateRepository ??= new CertificateRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+            return _certificateRepository ??= new CertificateRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException(TransactionIsNullExceptionMessage));
         }
     }
 
@@ -30,7 +31,16 @@ public class UnitOfWork : IUnitOfWork, IDisposable
     {
         get
         {
-            return _outboxMessageRepository ??= new OutboxMessageRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException("Transaction is null."));
+            return _outboxMessageRepository ??= new OutboxMessageRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException(TransactionIsNullExceptionMessage));
+        }
+    }
+
+    private IWithdrawnCertificateRepository _withdrawnCertificateRepository = null!;
+    public IWithdrawnCertificateRepository WithdrawnCertificateRepository
+    {
+        get
+        {
+            return _withdrawnCertificateRepository ??= new WithdrawnCertificateRepository(_lazyTransaction.Value.Connection ?? throw new InvalidOperationException(TransactionIsNullExceptionMessage));
         }
     }
 
