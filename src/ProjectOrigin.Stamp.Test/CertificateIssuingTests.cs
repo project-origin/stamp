@@ -220,7 +220,8 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
             },
             HashedAttributes = new List<HashedAttribute>
             {
-                new () { Key = "assetId", Value = gsrn }
+                new () { Key = "assetId", Value = gsrn },
+                new () { Key = "address", Value = "Some road 1234" }
             }
         };
 
@@ -243,7 +244,8 @@ public class CertificateIssuingTests : IClassFixture<TestServerFixture<Startup>>
         {
             { "assetId", gsrn },
             { "fuelCode", "F01040100" },
-            { "techCode", "T010000" }
+            { "techCode", "T010000" },
+            { "address", "Some road 1234" }
         });
     }
 

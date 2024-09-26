@@ -15,11 +15,6 @@ namespace ProjectOrigin.Stamp.Server.Helpers;
 
 public static class Registry
 {
-    public static class Attributes
-    {
-        public const string AssetId = "assetId";
-    }
-
     public static IssuedEvent BuildIssuedEvent(string registryName, Guid certificateId, DateInterval period,
         string gridArea, SecretCommitmentInfo commitment, IPublicKey ownerPublicKey,
         GranularCertificateType type, Dictionary<string, string> attributes, List<CertificateHashedAttribute> hashedAttributes)
@@ -57,7 +52,7 @@ public static class Registry
         {
             var str = attr.HaKey + attr.HaValue + certificateId + Convert.ToHexString(attr.Salt);
             var hashedValue = Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(str)));
-            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = Attributes.AssetId, Value = hashedValue, Type = AttributeType.Hashed });
+            issuedEvent.Attributes.Add(new Electricity.V1.Attribute { Key = attr.HaKey, Value = hashedValue, Type = AttributeType.Hashed });
         }
 
         return issuedEvent;
