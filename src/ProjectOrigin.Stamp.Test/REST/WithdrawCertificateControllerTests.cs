@@ -90,10 +90,10 @@ public class WithdrawCertificateControllerTests : IDisposable
         var withdrawnCertificate = await response.Content.ReadJson<WithdrawnCertificateResponse>();
 
         // Act
-        var withdrawnCertificatesPage = await _client.GetWithdrawnCertificates(withdrawnCertificate.Id - 1);
+        var withdrawnCertificatesPage = await _client.GetWithdrawnCertificates(withdrawnCertificate!.Id - 1);
 
         // Assert
-        withdrawnCertificatesPage.PageNumber.Should().Be(1);
+        withdrawnCertificatesPage!.PageNumber.Should().Be(1);
         withdrawnCertificatesPage.WithdrawnCertificates.Should().ContainSingle();
         withdrawnCertificatesPage.WithdrawnCertificates[0].Id.Should().Be(withdrawnCertificate.Id);
     }

@@ -11,7 +11,7 @@ public interface IWithdrawnCertificateRepository
 {
     Task<WithdrawnCertificate> Create(string registryName, Guid certificateId);
     Task<WithdrawnCertificate?> Get(string registryName, Guid certificateId);
-    Task<List<WithdrawnCertificate>> GetPage(int fromId, int pageSize, int pageNumber);
+    Task<List<WithdrawnCertificate>> GetPage(int fromId, int pageSize = 1, int pageNumber = 100);
 }
 
 public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
@@ -31,7 +31,7 @@ public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
               VALUES (@certificateId, @registryName, @withdrawnDate)",
               new { certificateId, registryName, withdrawnDate }
             );
-        return await Get(registryName, certificateId) ?? throw new Exception("Failed to create certificate");
+        return (await Get(registryName, certificateId))!;
     }
 
     public async Task<WithdrawnCertificate?> Get(string registryName, Guid certificateId)
