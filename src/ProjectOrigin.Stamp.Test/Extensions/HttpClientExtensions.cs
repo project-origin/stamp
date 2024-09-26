@@ -48,6 +48,11 @@ public static class HttpClientExtensions
         return await client.PostAsJsonAsync("/stamp-api/v1/certificates", request);
     }
 
+    public static async Task<WithdrawnCertificatesResponse?> GetWithdrawnCertificates(this HttpClient client, int withdrawnCertificateId)
+    {
+        return await client.GetFromJsonAsync<WithdrawnCertificatesResponse>($"/stamp-api/v1/certificates/withdrawn?lastWithdrawnId={withdrawnCertificateId}");
+    }
+
     public static async Task<HttpResponseMessage> WithdrawCertificate(this HttpClient client, string registry, Guid certificateId)
     {
         return await client.PostAsync($"v1/certificates/{registry}/{certificateId}/withdraw", new StringContent(""));

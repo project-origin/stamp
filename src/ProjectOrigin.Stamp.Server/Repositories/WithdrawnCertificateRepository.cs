@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
 using Dapper;
@@ -8,8 +9,9 @@ namespace ProjectOrigin.Stamp.Server.Repositories;
 
 public interface IWithdrawnCertificateRepository
 {
-    Task Create(string registryName, Guid certificateId);
+    Task<WithdrawnCertificate> Create(string registryName, Guid certificateId);
     Task<WithdrawnCertificate?> Get(string registryName, Guid certificateId);
+    Task<List<WithdrawnCertificate>> GetPage(int fromId, int pageSize, int pageNumber);
 }
 
 public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
@@ -21,7 +23,7 @@ public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
         _connection = connection;
     }
 
-    public async Task Create(string registryName, Guid certificateId)
+    public async Task<WithdrawnCertificate> Create(string registryName, Guid certificateId)
     {
         var withdrawnDate = DateTimeOffset.UtcNow;
         await _connection.ExecuteAsync(
@@ -29,6 +31,7 @@ public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
               VALUES (@certificateId, @registryName, @withdrawnDate)",
               new { certificateId, registryName, withdrawnDate }
             );
+        return await Get(registryName, certificateId) ?? throw new Exception("Failed to create certificate");
     }
 
     public async Task<WithdrawnCertificate?> Get(string registryName, Guid certificateId)
@@ -39,5 +42,20 @@ public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
               WHERE certificate_id = @certificateId AND registry_name = @registryName",
               new { certificateId, registryName }
             );
+    }
+
+    public async Task<List<WithdrawnCertificate>> GetPage(int fromId, int pageSize = 1, int pageNumber = 100)
+    {
+        var offset = (pageNumber - 1) * pageSize;
+        var result = await _connection.QueryAsync<WithdrawnCertificate>(
+            @"SELECT id, certificate_id, registry_name, withdrawn_date
+              FROM WithdrawnCertificates
+              WHERE id > @fromId
+              ORDER BY id ASC
+              LIMIT @pageSize OFFSET @offset",
+              new { fromId, pageSize, offset }
+            );
+
+        return result.AsList();
     }
 }

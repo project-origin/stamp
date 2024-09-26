@@ -4,7 +4,7 @@ using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using FluentAssertions;
 using ProjectOrigin.Stamp.Test.Extensions;
 using Xunit;
-using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateType;
+using ProjectOrigin.Stamp.Server.Services.REST.v1;
 
 namespace ProjectOrigin.Stamp.Test;
 
@@ -49,7 +49,7 @@ public class WithdrawCertificateControllerTests : IDisposable
 
 
     [Fact]
-    public async Task WhenNoCertificateExistsInDatabase_NotFound()
+    public async Task WithdrawCertificate_WhenNoCertificateExistsInDatabase_NotFound()
     {
         // Arrange
         var cert = Some.CertificateDto(gsrn: _gsrn, gridArea: _gridArea);
@@ -63,7 +63,7 @@ public class WithdrawCertificateControllerTests : IDisposable
 
 
     [Fact]
-    public async Task WhenCertificateAlreadyWithdrawn_Conflict()
+    public async Task WithdrawCertificate_WhenCertificateAlreadyWithdrawn_Conflict()
     {
         // Arrange
         var recipientId = await CreateRecipient();
@@ -77,6 +77,25 @@ public class WithdrawCertificateControllerTests : IDisposable
         // Assert
         response1.StatusCode.Should().Be(HttpStatusCode.Created);
         response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task WithdrawnCertificates_WhenOneIsWithdrawn_Single()
+    {
+        // Arrange
+        var recipientId = await CreateRecipient();
+        var cert = Some.CertificateDto(gsrn: _gsrn, gridArea: _gridArea);
+        await _client.PostCertificate(recipientId, _registryName, _gsrn, cert);
+        var response = await _client.WithdrawCertificate(_registryName, cert.Id);
+        var withdrawnCertificate = await response.Content.ReadJson<WithdrawnCertificateResponse>();
+
+        // Act
+        var withdrawnCertificatesPage = await _client.GetWithdrawnCertificates(withdrawnCertificate.Id - 1);
+
+        // Assert
+        withdrawnCertificatesPage.PageNumber.Should().Be(1);
+        withdrawnCertificatesPage.WithdrawnCertificates.Should().ContainSingle();
+        withdrawnCertificatesPage.WithdrawnCertificates[0].Id.Should().Be(withdrawnCertificate.Id);
     }
 
     private async Task<Guid> CreateRecipient()
