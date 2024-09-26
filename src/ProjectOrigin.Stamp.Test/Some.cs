@@ -46,7 +46,8 @@ public static class Some
             },
             HashedAttributes = new List<HashedAttribute>
             {
-                new () { Key = "assetId", Value = gsrn ?? Gsrn() }
+                new () { Key = "assetId", Value = gsrn ?? Gsrn() },
+                new () { Key = "address", Value = "Some road 1234" }
             }
         };
     }
