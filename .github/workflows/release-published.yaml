@@ -6,24 +6,24 @@ on:
 
 jobs:
   define-version:
-    uses: project-origin/.github/.github/workflows/reusable-tag-version.yaml@b1a1034591b6f491085a0d9d259ae3b486487701
+    uses: project-origin/.github/.github/workflows/reusable-tag-version.yaml@99575e8d3eda336ce2a339cc8c9f9235d26233bd
 
   publish-container:
     needs:
       - define-version
-    uses: project-origin/.github/.github/workflows/reusable-build-push-container-ghcr.yaml@b1a1034591b6f491085a0d9d259ae3b486487701
+    uses: project-origin/.github/.github/workflows/reusable-build-push-container-ghcr.yaml@99575e8d3eda336ce2a339cc8c9f9235d26233bd
     with:
       imagename: ghcr.io/project-origin/stamp
       version: ${{ needs.define-version.outputs.version }}
-      context: ./src
-      dockerfile: ./src/Stamp.Dockerfile
+      context: .
+      dockerfile: Stamp.Dockerfile
       push: true
 
   publish-chart:
     needs:
       - define-version
       - publish-container
-    uses: project-origin/.github/.github/workflows/reusable-publish-chart.yaml@b1a1034591b6f491085a0d9d259ae3b486487701
+    uses: project-origin/.github/.github/workflows/reusable-publish-chart.yaml@99575e8d3eda336ce2a339cc8c9f9235d26233bd
     with:
       version: ${{ needs.define-version.outputs.version }}
       chart_folder: chart
