@@ -41,18 +41,22 @@ trap 'debug; cleanup' ERR
 temp_folder=$(mktemp -d)
 values_filename=${temp_folder}/values.yaml
 
-# create kind cluster
+
+# create kind cluster - async
 kind delete cluster -n ${cluster_name}
-kind create cluster -n ${cluster_name}
+kind create cluster -n ${cluster_name} &
+
+# build docker image - async
+make build-container &
+
+# wait for cluster and container to be ready
+wait
 
 # install rabbitmq-operator
 kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/download/v2.5.0/cluster-operator.yml"
 
 # install cnpg-operator
 helm install cnpg-operator cloudnative-pg --repo https://cloudnative-pg.io/charts --version 0.18.0 --namespace cnpg --create-namespace --wait
-
-# build docker image
-docker build -f src/Stamp.Dockerfile -t ghcr.io/project-origin/stamp:test src/
 
 # load docker image into cluster
 kind load -n ${cluster_name} docker-image ghcr.io/project-origin/stamp:test
