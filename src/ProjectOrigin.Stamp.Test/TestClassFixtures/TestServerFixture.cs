@@ -52,7 +52,8 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
         public RetryOptions RetryOptions { get; set; } = new()
         {
             DefaultFirstLevelRetryCount = 5,
-            RegistryTransactionStillProcessingRetryCount = 100
+            RegistryTransactionStillProcessingRetryCount = 10,
+            RegistryTransactionStillProcessingInitialWaitSeconds = 10
         };
 
         public RabbitMqOptions RabbitMqOptions { get; set; } = new()
