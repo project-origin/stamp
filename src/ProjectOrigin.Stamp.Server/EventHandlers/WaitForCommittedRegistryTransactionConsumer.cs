@@ -107,12 +107,10 @@ public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDef
         IConsumerConfigurator<WaitForCommittedRegistryTransactionConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
-        var intervals = Enumerable.Repeat(10, _retryOptions.RegistryTransactionStillProcessingRetryCount);
-        var waitIntervals = intervals.Prepend(_retryOptions.RegistryTransactionStillProcessingInitialWaitSeconds)
-            .Select(t => TimeSpan.FromSeconds(t))
-            .ToArray();
         endpointConfigurator.UseMessageRetry(r => r
-            .Intervals(waitIntervals)
+            .Incremental(_retryOptions.RegistryTransactionStillProcessingRetryCount,
+                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingInitialIntervalSeconds),
+                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingIntervalIncrementSeconds))
             .Handle(typeof(RegistryTransactionStillProcessingException)));
 
         endpointConfigurator.UseMessageRetry(r => r
