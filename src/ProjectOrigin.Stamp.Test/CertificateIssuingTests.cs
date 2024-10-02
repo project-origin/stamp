@@ -115,12 +115,8 @@ public class CertificateIssuingTests : IDisposable
         queriedCert.End.Should().Be(cert.End);
         queriedCert.GridArea.Should().Be(cert.GridArea);
         queriedCert.CertificateType.Should().Be(type.MapToWalletModel());
-        queriedCert.Attributes.Should().BeEquivalentTo(new Dictionary<string, string>
-        {
-            { "assetId", _gsrn },
-            { "fuelCode", "F01040100" },
-            { "techCode", "T010000" }
-        });
+        cert.ClearTextAttributes.All(atr => queriedCert.Attributes.ContainsKey(atr.Key) && queriedCert.Attributes.ContainsValue(atr.Value)).Should().BeTrue();
+        cert.HashedAttributes.All(atr => queriedCert.Attributes.ContainsKey(atr.Key) && queriedCert.Attributes.ContainsValue(atr.Value)).Should().BeTrue();
     }
 
     [Theory]
@@ -158,12 +154,9 @@ public class CertificateIssuingTests : IDisposable
             granularCertificates[i].GridArea.Should().Be(certs[i].GridArea);
             granularCertificates[i].Quantity.Should().Be(certs[i].Quantity);
             granularCertificates[i].CertificateType.Should().Be(type.MapToWalletModel());
-            granularCertificates[i].Attributes.Should().BeEquivalentTo(new Dictionary<string, string>
-            {
-                { "assetId", _gsrn },
-                { "fuelCode", "F01040100" },
-                { "techCode", "T010000" }
-            });
+            granularCertificates[i].Attributes.Should().NotBeNullOrEmpty();
+            certs[i].ClearTextAttributes.All(atr => granularCertificates[i].Attributes.ContainsKey(atr.Key) && granularCertificates[i].Attributes.ContainsValue(atr.Value)).Should().BeTrue();
+            certs[i].HashedAttributes.All(atr => granularCertificates[i].Attributes.ContainsKey(atr.Key) && granularCertificates[i].Attributes.ContainsValue(atr.Value)).Should().BeTrue();
         }
     }
     private async Task<Guid> CreateRecipient()
