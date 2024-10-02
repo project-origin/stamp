@@ -11,7 +11,7 @@ public interface IWithdrawnCertificateRepository
 {
     Task<WithdrawnCertificate> Create(string registryName, Guid certificateId);
     Task<WithdrawnCertificate?> Get(string registryName, Guid certificateId);
-    Task<List<WithdrawnCertificate>> GetPage(int fromId, int pageSize = 1, int pageNumber = 100);
+    Task<List<WithdrawnCertificate>> GetMultiple(int fromId, int pageSize, int pageNumber);
 }
 
 public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
@@ -44,7 +44,7 @@ public class WithdrawnCertificateRepository : IWithdrawnCertificateRepository
             );
     }
 
-    public async Task<List<WithdrawnCertificate>> GetPage(int fromId, int pageSize = 1, int pageNumber = 100)
+    public async Task<List<WithdrawnCertificate>> GetMultiple(int fromId, int pageSize, int pageNumber)
     {
         var offset = (pageNumber - 1) * pageSize;
         var result = await _connection.QueryAsync<WithdrawnCertificate>(

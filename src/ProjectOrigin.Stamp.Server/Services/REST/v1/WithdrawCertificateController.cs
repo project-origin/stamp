@@ -67,7 +67,8 @@ public class WithdrawnCertificatesController : ControllerBase
         {
             Id = createdWithdrawnCertificate.Id,
             RegistryName = registry,
-            CertificateId = certificateId
+            CertificateId = certificateId,
+            WithdrawnDate = createdWithdrawnCertificate.WithdrawnDate
         });
     }
 
@@ -97,7 +98,7 @@ public class WithdrawnCertificatesController : ControllerBase
         if (pageSize < 1)
             return BadRequest("pageSize must be 1 or more");
 
-        var withdrawnCertificates = await unitOfWork.WithdrawnCertificateRepository.GetPage(lastWithdrawnId, pageSize, pageNumber);
+        var withdrawnCertificates = await unitOfWork.WithdrawnCertificateRepository.GetMultiple(lastWithdrawnId, pageSize, pageNumber);
 
         return Ok(new WithdrawnCertificatesResponse
         {
@@ -119,6 +120,7 @@ public record WithdrawnCertificateResponse
     public required int Id { get; init; }
     public required string RegistryName { get; init; }
     public required Guid CertificateId { get; init; }
+    public required DateTimeOffset WithdrawnDate { get; init; }
 }
 
 public record WithdrawnCertificatesResponse

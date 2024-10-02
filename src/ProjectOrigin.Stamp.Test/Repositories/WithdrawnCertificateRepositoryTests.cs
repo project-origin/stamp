@@ -38,35 +38,35 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
     }
 
     [Fact]
-    public async Task GetPage_WhenPreviousIdIsUsed_Single()
+    public async Task GetMultiple_WhenPreviousIdIsUsed_Single()
     {
         // Arrange
         var withdrawnCertificate = await _repository.Create("Narnia", Guid.NewGuid());
         int fromId = withdrawnCertificate.Id - 1;
 
         // Act
-        var page = await _repository.GetPage(fromId, PAGE_SIZE, PAGE_NUMBER);
+        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, PAGE_NUMBER);
 
         // Assert
         page.Should().ContainSingle();
     }
 
     [Fact]
-    public async Task GetPage_WhenCurrentIdUsed_Empty()
+    public async Task GetMultiple_WhenCurrentIdUsed_Empty()
     {
         // Arrange
         var withdrawnCertificate = await _repository.Create("Narnia", Guid.NewGuid());
         int fromId = withdrawnCertificate.Id;
 
         // Act
-        var page = await _repository.GetPage(fromId, PAGE_SIZE, PAGE_NUMBER);
+        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, PAGE_NUMBER);
 
         // Assert
         page.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task GetPage_WhenSecondPageIsQueried_Empty()
+    public async Task GetMultiple_WhenSecondPageIsQueried_Empty()
     {
         // Arrange
         var ids = await CreateWithdrawnCertificates(12);
@@ -74,7 +74,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         int pageNumber = 2;
 
         // Act
-        var page = await _repository.GetPage(fromId, PAGE_SIZE, pageNumber);
+        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, pageNumber);
 
         // Assert
         page.Count.Should().Be(PAGE_SIZE);
@@ -84,7 +84,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
     }
 
     [Fact]
-    public async Task GetPage_WhenNoneFullPageIsQueried_2Entities()
+    public async Task GetMultiple_WhenNoneFullPageIsQueried_2Entities()
     {
         // Arrange
         var ids = await CreateWithdrawnCertificates(5);
@@ -92,7 +92,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         int pageNumber = 2;
 
         // Act
-        var page = await _repository.GetPage(fromId, PAGE_SIZE, pageNumber);
+        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, pageNumber);
 
         // Assert
         page.Count.Should().Be(2);
@@ -101,7 +101,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
     }
 
     [Fact]
-    public async Task GetPage_WhenTooHighPageNumberIsQueried_Empty()
+    public async Task GetMultiple_WhenTooHighPageNumberIsQueried_Empty()
     {
         // Arrange
         int pageNumber = 3;
@@ -109,7 +109,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         int fromId = ids[0] - 1;
 
         // Act
-        var page = await _repository.GetPage(fromId, PAGE_SIZE, pageNumber);
+        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, pageNumber);
 
         // Assert
         page.Should().BeEmpty();
