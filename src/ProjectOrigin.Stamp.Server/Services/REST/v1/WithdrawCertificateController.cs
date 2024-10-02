@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +30,7 @@ public class WithdrawnCertificatesController : ControllerBase
     [HttpPost]
     [Route("v1/certificates/{registry}/{certificateId}/withdraw")]
     [Produces("application/json")]
-    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult> WithdrawCertificate(
@@ -58,19 +60,80 @@ public class WithdrawnCertificatesController : ControllerBase
         var client = new RegistryService.RegistryServiceClient(channel);
         await client.SendTransactionsAsync(request);
 
-        await unitOfWork.WithdrawnCertificateRepository.Create(registry, certificateId);
+        var createdWithdrawnCertificate = await unitOfWork.WithdrawnCertificateRepository.Create(registry, certificateId);
         unitOfWork.Commit();
 
         return Created(string.Empty, new WithdrawnCertificateResponse
         {
+            Id = createdWithdrawnCertificate.Id,
             RegistryName = registry,
-            CertificateId = certificateId
+            CertificateId = certificateId,
+            WithdrawnDate = createdWithdrawnCertificate.WithdrawnDate
+        });
+    }
+
+    /// <summary>
+    /// Withdraw a certificate
+    /// </summary>
+    /// <param name="unitOfWork"></param>
+    /// <param name="lastWithdrawnId"></param>
+    /// <param name="pageSize"></param>
+    /// <param name="pageNumber"></param>
+    /// <response code="200">The certificate has been withdrawn.</response>
+    [HttpGet]
+    [Route("v1/certificates/withdrawn")]
+    [Produces("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult> WithdrawnCertificates(
+        [FromServices] IUnitOfWork unitOfWork,
+        [FromQuery] int lastWithdrawnId = 0,
+        int pageSize = 100,
+        int pageNumber = 1)
+    {
+        if (pageNumber < 1)
+            return BadRequest("pageNumber must be 1 or more");
+
+        if (pageSize < 1)
+            return BadRequest("pageSize must be 1 or more");
+
+        var withdrawnCertificates = await unitOfWork.WithdrawnCertificateRepository.GetMultiple(lastWithdrawnId, pageSize, pageNumber);
+
+        return Ok(new WithdrawnCertificatesResponse
+        {
+            PageSize = pageSize,
+            PageNumber = pageNumber,
+            WithdrawnCertificates = withdrawnCertificates.Select(wc => new WithdrawnCertificateDto
+            {
+                Id = wc.Id,
+                RegistryName = wc.RegistryName,
+                CertificateId = wc.CertificateId,
+                WithdrawnDate = wc.WithdrawnDate
+            }).ToList()
         });
     }
 }
 
 public record WithdrawnCertificateResponse
 {
+    public required int Id { get; init; }
     public required string RegistryName { get; init; }
     public required Guid CertificateId { get; init; }
+    public required DateTimeOffset WithdrawnDate { get; init; }
+}
+
+public record WithdrawnCertificatesResponse
+{
+    public required int PageSize { get; init; }
+    public required int PageNumber { get; init; }
+    public required List<WithdrawnCertificateDto> WithdrawnCertificates { get; init; }
+}
+
+public record WithdrawnCertificateDto
+{
+    public required int Id { get; init; }
+    public required string RegistryName { get; init; }
+    public required Guid CertificateId { get; init; }
+    public required DateTimeOffset WithdrawnDate { get; init; }
 }
