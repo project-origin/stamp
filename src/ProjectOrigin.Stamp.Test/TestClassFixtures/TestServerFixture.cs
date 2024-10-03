@@ -53,7 +53,8 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
         {
             DefaultFirstLevelRetryCount = 5,
             RegistryTransactionStillProcessingRetryCount = 10,
-            RegistryTransactionStillProcessingInitialWaitSeconds = 10
+            RegistryTransactionStillProcessingInitialIntervalSeconds = 0,
+            RegistryTransactionStillProcessingIntervalIncrementSeconds = 5
         };
 
         public RabbitMqOptions RabbitMqOptions { get; set; } = new()
@@ -111,7 +112,9 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures
                     {"MessageBroker:RabbitMq:Password", RabbitMqOptions.Password},
                     {"ConnectionStrings:Database", PostgresConnectionString},
                     {"Retry:DefaultFirstLevelRetryCount", RetryOptions.DefaultFirstLevelRetryCount.ToString()},
-                    {"Retry:RegistryTransactionStillProcessingRetryCount", RetryOptions.RegistryTransactionStillProcessingRetryCount.ToString()}
+                    {"Retry:RegistryTransactionStillProcessingRetryCount", RetryOptions.RegistryTransactionStillProcessingRetryCount.ToString()},
+                    {"Retry:RegistryTransactionStillProcessingInitialIntervalSeconds", RetryOptions.RegistryTransactionStillProcessingInitialIntervalSeconds.ToString()},
+                    {"Retry:RegistryTransactionStillProcessingIntervalIncrementSeconds", RetryOptions.RegistryTransactionStillProcessingIntervalIncrementSeconds.ToString()}
                 };
 
                 for (var i = 0; i < RegistryOptions.Registries.Count; i++)

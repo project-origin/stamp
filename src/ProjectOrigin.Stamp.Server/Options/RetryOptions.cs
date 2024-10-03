@@ -9,8 +9,9 @@ public class RetryOptions
     public int DefaultFirstLevelRetryCount { get; set; }
 
     [Required]
-    public int RegistryTransactionStillProcessingInitialWaitSeconds { get; set; }
-
-    [Required]
     public int RegistryTransactionStillProcessingRetryCount { get; set; }
+    [Required]
+    public int RegistryTransactionStillProcessingInitialIntervalSeconds { get; set; }
+    [Required]
+    public int RegistryTransactionStillProcessingIntervalIncrementSeconds { get; set; }
 }
