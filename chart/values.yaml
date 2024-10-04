@@ -47,8 +47,12 @@ messageBroker:
   retry:
     # number of times Stamp consumers retrys messages on errors with a 3 minute incrementing interval.
     defaultFirstLevelRetryCount: 5
-    # number of times the registry is polled for transaction status before giving up with a 1 second interval.
-    registryTransactionStillProcessingRetryCount: 100
+    # number of times the registry is polled for transaction status before giving up with interval specified below.
+    registryTransactionStillProcessingRetryCount: 5
+    # intitial interval in seconds for the registry to retry for the transaction status.
+    registryTransactionStillProcessingInitialIntervalSeconds: 60
+    # increment interval in seconds for the registry to retry for the transaction status.
+    registryTransactionStillProcessingIntervalIncrementSeconds: 60
 
 # stamp defines the deployment configuration for the stamp server
 stamp:
