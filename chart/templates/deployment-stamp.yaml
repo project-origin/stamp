@@ -78,6 +78,10 @@ spec:
               value: {{ .Values.messageBroker.retry.defaultFirstLevelRetryCount | quote }}
             - name: Retry__RegistryTransactionStillProcessingRetryCount
               value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingRetryCount | quote }}
+            - name: Retry__RegistryTransactionStillProcessingInitialIntervalSeconds
+              value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingInitialIntervalSeconds | quote }}
+            - name: Retry__RegistryTransactionStillProcessingIntervalIncrementSeconds
+              value: {{ .Values.messageBroker.retry.registryTransactionStillProcessingIntervalIncrementSeconds | quote }}
 
           {{- range $i, $registry := .Values.registries }}
             - name: Registries__{{ $i }}__name
