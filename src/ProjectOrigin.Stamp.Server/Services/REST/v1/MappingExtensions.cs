@@ -12,4 +12,13 @@ public static class MappingExtensions
             CertificateType.Production => GranularCertificateType.Production,
             _ => throw new ArgumentOutOfRangeException(nameof(certificateType), certificateType, null)
         };
+
+    public static WithdrawnCertificateDto MapToV1(this WithdrawnCertificate withdrawnCertificate) =>
+        new()
+        {
+            Id = withdrawnCertificate.Id,
+            CertificateId = withdrawnCertificate.CertificateId,
+            RegistryName = withdrawnCertificate.RegistryName,
+            WithdrawnDate = withdrawnCertificate.WithdrawnDate
+        };
 }
