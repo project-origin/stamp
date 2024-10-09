@@ -67,7 +67,7 @@ public class OutboxPollingWorkerTests
         outboxRepositoryMock.GetFirst().Returns(message);
         unitOfWorkMock.OutboxMessageRepository.Returns(outboxRepositoryMock);
         busMock
-            .Publish(Arg.Any<object?>(), Arg.Any<CancellationToken>())
+            .Publish(Arg.Any<object?>()!, Arg.Any<CancellationToken>())
             .ReturnsForAnyArgs(Task.CompletedTask)
             .AndDoes(_ => tokenSource.Cancel());
 
@@ -75,7 +75,7 @@ public class OutboxPollingWorkerTests
         await sut.StartAsync(tokenSource.Token);
 
         // Assert
-        await busMock.Received(1).Publish(Arg.Any<object?>(), Arg.Any<CancellationToken>());
+        await busMock.Received(1).Publish(Arg.Any<object?>()!, Arg.Any<CancellationToken>());
         await outboxRepositoryMock.Received(1).Delete(message.Id);
         unitOfWorkMock.Received(1).Commit();
         unitOfWorkMock.DidNotReceive().Rollback();
@@ -86,7 +86,7 @@ public class OutboxPollingWorkerTests
     {
         using var tokenSource = new CancellationTokenSource();
         outboxRepositoryMock.GetFirst()
-            .Returns((OutboxMessage)null)
+            .Returns((OutboxMessage)null!)
             .AndDoes(_ => tokenSource.Cancel());
         unitOfWorkMock.OutboxMessageRepository.Returns(outboxRepositoryMock);
 
@@ -100,7 +100,7 @@ public class OutboxPollingWorkerTests
         }
 
         // Assert
-        await busMock.DidNotReceive().Publish(Arg.Any<object?>(), Arg.Any<CancellationToken>());
+        await busMock.DidNotReceive().Publish(Arg.Any<object?>()!, Arg.Any<CancellationToken>());
         await outboxRepositoryMock.DidNotReceive().Delete(Arg.Any<Guid>());
         unitOfWorkMock.DidNotReceive().Commit();
         unitOfWorkMock.DidNotReceive().Rollback();
