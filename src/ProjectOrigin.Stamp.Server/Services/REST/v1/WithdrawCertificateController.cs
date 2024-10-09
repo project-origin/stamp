@@ -10,6 +10,7 @@ using ProjectOrigin.Electricity.V1;
 using ProjectOrigin.Registry.V1;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Helpers;
+using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
@@ -76,42 +77,27 @@ public class WithdrawnCertificatesController : ControllerBase
     /// Withdraw a certificate
     /// </summary>
     /// <param name="unitOfWork"></param>
-    /// <param name="lastWithdrawnId"></param>
-    /// <param name="pageSize"></param>
-    /// <param name="pageNumber"></param>
-    /// <response code="200">The certificate has been withdrawn.</response>
+    /// <param name="lastWithdrawnId">The id of the withdrawn certificate you want to start from.
+    /// Ie if set to 100 you get withdrawn certificates starting from number 100.</param>
+    /// <param name="skip">The number of items to skip.</param>
+    /// <param name="limit">The number of items to return.</param>
+    /// <response code="200">Returns the withdrawn certificates.</response>
     [HttpGet]
     [Route("v1/certificates/withdrawn")]
     [Produces("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult> WithdrawnCertificates(
+    public async Task<ActionResult<ResultList<WithdrawnCertificateDto, PageInfo>>> WithdrawnCertificates(
         [FromServices] IUnitOfWork unitOfWork,
         [FromQuery] int lastWithdrawnId = 0,
-        int pageSize = 100,
-        int pageNumber = 1)
+        int skip = 0,
+        int? limit = null)
     {
-        if (pageNumber < 1)
-            return BadRequest("pageNumber must be 1 or more");
+        limit ??= int.MaxValue;
+        var withdrawnCertificates = await unitOfWork.WithdrawnCertificateRepository.GetMultiple(lastWithdrawnId, skip, limit.Value);
 
-        if (pageSize < 1)
-            return BadRequest("pageSize must be 1 or more");
-
-        var withdrawnCertificates = await unitOfWork.WithdrawnCertificateRepository.GetMultiple(lastWithdrawnId, pageSize, pageNumber);
-
-        return Ok(new WithdrawnCertificatesResponse
-        {
-            PageSize = pageSize,
-            PageNumber = pageNumber,
-            WithdrawnCertificates = withdrawnCertificates.Select(wc => new WithdrawnCertificateDto
-            {
-                Id = wc.Id,
-                RegistryName = wc.RegistryName,
-                CertificateId = wc.CertificateId,
-                WithdrawnDate = wc.WithdrawnDate
-            }).ToList()
-        });
+        return Ok(withdrawnCertificates.ToResultList(wc => wc.MapToV1()));
     }
 }
 
@@ -121,13 +107,6 @@ public record WithdrawnCertificateResponse
     public required string RegistryName { get; init; }
     public required Guid CertificateId { get; init; }
     public required DateTimeOffset WithdrawnDate { get; init; }
-}
-
-public record WithdrawnCertificatesResponse
-{
-    public required int PageSize { get; init; }
-    public required int PageNumber { get; init; }
-    public required List<WithdrawnCertificateDto> WithdrawnCertificates { get; init; }
 }
 
 public record WithdrawnCertificateDto

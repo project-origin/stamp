@@ -1,3 +1,4 @@
+using Dapper;
 using FluentAssertions;
 using Npgsql;
 using ProjectOrigin.Stamp.Server.Repositories;
@@ -8,20 +9,21 @@ namespace ProjectOrigin.Stamp.Test.Repositories;
 
 public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
 {
-    private const int PAGE_SIZE = 3;
-    private const int PAGE_NUMBER = 1;
+    private const int SKIP = 0;
+    private const int LIMIT = 3;
 
     private readonly WithdrawnCertificateRepository _repository;
+    private readonly NpgsqlConnection _connection;
 
     public WithdrawnCertificateRepositoryTests(PostgresDatabaseFixture dbFixture)
     {
-        var connection = new NpgsqlConnection(dbFixture.ConnectionString);
-        connection.Open();
-        _repository = new WithdrawnCertificateRepository(connection);
+        _connection = new NpgsqlConnection(dbFixture.ConnectionString);
+        _connection.Open();
+        _repository = new WithdrawnCertificateRepository(_connection);
     }
 
     [Fact]
-    public async Task CreateAndGetCertificate()
+    public async Task CreateAndGetWithdrawnCertificate()
     {
         // Arrange
         var certificateId = Guid.NewGuid();
@@ -45,10 +47,14 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         int fromId = withdrawnCertificate.Id - 1;
 
         // Act
-        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, PAGE_NUMBER);
+        var page = await _repository.GetMultiple(fromId, SKIP, LIMIT);
 
         // Assert
-        page.Should().ContainSingle();
+        page.Count.Should().Be(1);
+        page.Items.Should().ContainSingle();
+        page.TotalCount.Should().Be(1);
+        page.Limit.Should().Be(LIMIT);
+        page.Offset.Should().Be(SKIP);
     }
 
     [Fact]
@@ -59,60 +65,95 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         int fromId = withdrawnCertificate.Id;
 
         // Act
-        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, PAGE_NUMBER);
+        var page = await _repository.GetMultiple(fromId, SKIP, LIMIT);
 
         // Assert
-        page.Should().BeEmpty();
+        page.Items.Should().BeEmpty();
+        page.TotalCount.Should().Be(0);
+        page.Count.Should().Be(0);
     }
 
     [Fact]
-    public async Task GetMultiple_WhenSecondPageIsQueried_Empty()
+    public async Task GetMultiple_WhenSkippingAll_Empty()
     {
         // Arrange
-        var ids = await CreateWithdrawnCertificates(12);
+        var certificatesCount = 3;
+        var ids = await CreateWithdrawnCertificates(certificatesCount);
         int fromId = ids[0] - 1;
-        int pageNumber = 2;
 
         // Act
-        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, pageNumber);
+        var page = await _repository.GetMultiple(fromId, certificatesCount, int.MaxValue);
 
         // Assert
-        page.Count.Should().Be(PAGE_SIZE);
-        page[0].Id.Should().Be(ids[3]);
-        page[1].Id.Should().Be(ids[4]);
-        page[2].Id.Should().Be(ids[5]);
+        page.Items.Should().BeEmpty();
+        page.TotalCount.Should().Be(certificatesCount);
+        page.Count.Should().Be(0);
     }
 
     [Fact]
-    public async Task GetMultiple_WhenNoneFullPageIsQueried_2Entities()
+    public async Task GetMultiple_WhenSkippingOne_ExpectRest()
     {
         // Arrange
-        var ids = await CreateWithdrawnCertificates(5);
+        var certificatesCount = 3;
+        var ids = await CreateWithdrawnCertificates(certificatesCount);
         int fromId = ids[0] - 1;
-        int pageNumber = 2;
 
         // Act
-        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, pageNumber);
+        var page = await _repository.GetMultiple(fromId, certificatesCount - 1, int.MaxValue);
 
         // Assert
+        page.Items.Should().HaveCount(1);
+        page.TotalCount.Should().Be(certificatesCount);
+        page.Count.Should().Be(1);
+        page.Offset.Should().Be(certificatesCount - 1);
+        page.Limit.Should().Be(int.MaxValue);
+    }
+
+    [Fact]
+    public async Task GetMultiple_WhenLimiting_ExpectLimit()
+    {
+        // Arrange
+        var certificatesCount = 3;
+        var ids = await CreateWithdrawnCertificates(certificatesCount);
+        int fromId = ids[0] - 1;
+
+        // Act
+        var page = await _repository.GetMultiple(fromId, 0, certificatesCount - 1);
+
+        // Assert
+        page.Items.Should().HaveCount(2);
+        page.TotalCount.Should().Be(certificatesCount);
         page.Count.Should().Be(2);
-        page[0].Id.Should().Be(ids[3]);
-        page[1].Id.Should().Be(ids[4]);
+        page.Offset.Should().Be(0);
+        page.Limit.Should().Be(certificatesCount - 1);
     }
 
     [Fact]
-    public async Task GetMultiple_WhenTooHighPageNumberIsQueried_Empty()
+    public async Task GetMultiple_WhenSkippingAndLimiting()
     {
         // Arrange
-        int pageNumber = 3;
-        var ids = await CreateWithdrawnCertificates(6);
-        int fromId = ids[0] - 1;
+        await TruncateWithdrawnCertificates();
+        var limit = 2;
+        var skip = 1;
+        var certificatesCount = 6;
+        var ids = await CreateWithdrawnCertificates(certificatesCount);
 
         // Act
-        var page = await _repository.GetMultiple(fromId, PAGE_SIZE, pageNumber);
+        var page = await _repository.GetMultiple(0, skip, limit);
 
         // Assert
-        page.Should().BeEmpty();
+        page.Items.Should().HaveCount(limit);
+        page.TotalCount.Should().Be(certificatesCount);
+        page.Count.Should().Be(limit);
+        page.Offset.Should().Be(skip);
+        page.Limit.Should().Be(limit);
+        page.Items.ToArray()[0].Id.Should().Be(ids[1]);
+        page.Items.ToArray()[1].Id.Should().Be(ids[2]);
+    }
+
+    private async Task TruncateWithdrawnCertificates()
+    {
+        await _connection.ExecuteAsync("TRUNCATE TABLE WithdrawnCertificates");
     }
 
     private async Task<List<int>> CreateWithdrawnCertificates(int count)

@@ -93,9 +93,9 @@ public class WithdrawCertificateControllerTests : IDisposable
         var withdrawnCertificatesPage = await _client.GetWithdrawnCertificates(withdrawnCertificate!.Id - 1);
 
         // Assert
-        withdrawnCertificatesPage!.PageNumber.Should().Be(1);
-        withdrawnCertificatesPage.WithdrawnCertificates.Should().ContainSingle();
-        withdrawnCertificatesPage.WithdrawnCertificates[0].Id.Should().Be(withdrawnCertificate.Id);
+        withdrawnCertificatesPage!.Result.Should().HaveCount(1);
+        withdrawnCertificatesPage.Result.Should().HaveCount(1);
+        withdrawnCertificatesPage.Result.ToArray()[0].Id.Should().Be(withdrawnCertificate.Id);
     }
 
     private async Task<Guid> CreateRecipient()
