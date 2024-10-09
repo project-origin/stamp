@@ -50,7 +50,7 @@ public static class HttpClientExtensions
 
     public static async Task<ResultList<WithdrawnCertificateDto, PageInfo>?> GetWithdrawnCertificates(this HttpClient client, int withdrawnCertificateId)
     {
-        return await client.GetFromJsonAsync<ResultList<WithdrawnCertificateDto, PageInfo>> ($"/stamp-api/v1/certificates/withdrawn?lastWithdrawnId={withdrawnCertificateId}");
+        return await client.GetFromJsonAsync<ResultList<WithdrawnCertificateDto, PageInfo>>($"/stamp-api/v1/certificates/withdrawn?lastWithdrawnId={withdrawnCertificateId}");
     }
 
     public static async Task<HttpResponseMessage> WithdrawCertificate(this HttpClient client, string registry, Guid certificateId)
