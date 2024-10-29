@@ -1,2 +1,10 @@
 - name: Overview
   href: index.md
+
+- name: Flows
+  href: flows/index.md
+  items:
+  - name: Issuance
+    href: flows/issuance.md
+  - name: Withdraw
+    href: flows/withdraw.md
