@@ -40,15 +40,13 @@ public class WithdrawnCertificatesController : ControllerBase
         [FromRoute] string registry,
         Guid certificateId)
     {
-
-        var certificate = await unitOfWork.CertificateRepository.Get(registry, certificateId);
-        if (certificate == null)
-            return NotFound("Certificate not found.");
-
         var withdrawnCertificate = await unitOfWork.WithdrawnCertificateRepository.Get(registry, certificateId);
         if (withdrawnCertificate != null)
             return Conflict("Certificate already withdrawn.");
 
+        var certificate = await unitOfWork.CertificateRepository.Get(registry, certificateId);
+        if (certificate == null)
+            return NotFound("Certificate not found.");
 
         var withdrawnEvent = new WithdrawnEvent();
         var issuerKey = registryOptions.Value.GetIssuerKey(certificate.GridArea);
@@ -61,7 +59,7 @@ public class WithdrawnCertificatesController : ControllerBase
         var client = new RegistryService.RegistryServiceClient(channel);
         await client.SendTransactionsAsync(request);
 
-        var createdWithdrawnCertificate = await unitOfWork.WithdrawnCertificateRepository.Create(registry, certificateId);
+        var createdWithdrawnCertificate = await unitOfWork.WithdrawnCertificateRepository.Withdraw(certificate);
         unitOfWork.Commit();
 
         return Created(string.Empty, new WithdrawnCertificateResponse

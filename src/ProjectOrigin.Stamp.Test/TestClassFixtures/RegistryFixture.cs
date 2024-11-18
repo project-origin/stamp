@@ -14,8 +14,8 @@ namespace ProjectOrigin.Stamp.Test.TestClassFixtures;
 
 public class RegistryFixture : IAsyncLifetime
 {
-    private const string registryImage = "ghcr.io/project-origin/registry-server:2.0.3";
-    private const string electricityVerifierImage = "ghcr.io/project-origin/electricity-server:1.3.2";
+    private const string registryImage = "ghcr.io/project-origin/registry-server:2.1.0";
+    private const string electricityVerifierImage = "ghcr.io/project-origin/electricity-server:1.3.4";
     protected const int GrpcPort = 5000;
     private const int RabbitMqHttpPort = 15672;
     private const string registryName = "TestRegistry";
@@ -35,6 +35,7 @@ public class RegistryFixture : IAsyncLifetime
     public IPrivateKey Dk2IssuerKey { get; init; }
     public string RegistryUrl => $"http://{registryContainer.Hostname}:{registryContainer.GetMappedPublicPort(GrpcPort)}";
     protected string RegistryContainerUrl => $"http://{registryContainer.IpAddress}:{GrpcPort}";
+    public string RegistryUrlWithinNetwork => $"http://{RegistryAlias}:{GrpcPort}";
     public RegistryFixture()
     {
         Network = new NetworkBuilder()

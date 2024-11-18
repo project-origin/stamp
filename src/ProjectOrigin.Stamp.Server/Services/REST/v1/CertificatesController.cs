@@ -50,33 +50,36 @@ public class CertificatesController : ControllerBase
         if (recipient == null)
             return NotFound($"Recipient with id {request.RecipientId} not found.");
 
+        var withdrawnCertificate = await unitOfWork.WithdrawnCertificateRepository.Get(request.RegistryName, request.Certificate.Id);
+
+        if (withdrawnCertificate != null)
+            return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists and is withdrawn.");
+
         var certificate = await unitOfWork.CertificateRepository.Get(request.RegistryName, request.Certificate.Id);
 
         if (certificate != null)
             return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists.");
-        else
+        
+        certificate = new GranularCertificate
         {
-            certificate = new GranularCertificate
+            Id = request.Certificate.Id,
+            RegistryName = request.RegistryName,
+            CertificateType = request.Certificate.Type.MapToModel(),
+            Quantity = request.Certificate.Quantity,
+            StartDate = request.Certificate.Start,
+            EndDate = request.Certificate.End,
+            GridArea = request.Certificate.GridArea,
+            MeteringPointId = request.MeteringPointId,
+            ClearTextAttributes = request.Certificate.ClearTextAttributes,
+            HashedAttributes = request.Certificate.HashedAttributes.Select(ha => new CertificateHashedAttribute
             {
-                Id = request.Certificate.Id,
-                RegistryName = request.RegistryName,
-                CertificateType = request.Certificate.Type.MapToModel(),
-                Quantity = request.Certificate.Quantity,
-                StartDate = request.Certificate.Start,
-                EndDate = request.Certificate.End,
-                GridArea = request.Certificate.GridArea,
-                MeteringPointId = request.MeteringPointId,
-                ClearTextAttributes = request.Certificate.ClearTextAttributes,
-                HashedAttributes = request.Certificate.HashedAttributes.Select(ha => new CertificateHashedAttribute
-                {
-                    HaKey = ha.Key,
-                    HaValue = ha.Value,
-                    Salt = Guid.NewGuid().ToByteArray()
-                }).ToList()
-            };
+                HaKey = ha.Key,
+                HaValue = ha.Value,
+                Salt = Guid.NewGuid().ToByteArray()
+            }).ToList()
+        };
 
-            await unitOfWork.CertificateRepository.Create(certificate);
-        }
+        await unitOfWork.CertificateRepository.Create(certificate);
 
         var payloadObj = new CertificateStoredEvent
         {

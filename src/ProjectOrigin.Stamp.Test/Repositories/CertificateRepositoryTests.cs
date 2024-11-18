@@ -11,12 +11,14 @@ namespace ProjectOrigin.Stamp.Test.Repositories;
 public class CertificateRepositoryTests : IClassFixture<PostgresDatabaseFixture>
 {
     private readonly CertificateRepository _repository;
+    private readonly WithdrawnCertificateRepository _withdrawnRepository;
 
     public CertificateRepositoryTests(PostgresDatabaseFixture dbFixture)
     {
         var connection = new NpgsqlConnection(dbFixture.ConnectionString);
         connection.Open();
         _repository = new CertificateRepository(connection);
+        _withdrawnRepository = new WithdrawnCertificateRepository(connection);
     }
 
     [Fact]
