@@ -59,7 +59,7 @@ public class CertificatesController : ControllerBase
 
         if (certificate != null)
             return Conflict($"Certificate with registry {request.RegistryName} and certificateId {request.Certificate.Id} already exists.");
-        
+
         certificate = new GranularCertificate
         {
             Id = request.Certificate.Id,

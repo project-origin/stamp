@@ -59,7 +59,7 @@ public class CertificateIssuingTests : IDisposable
         var now = DateTimeOffset.UtcNow;
 
         var cert1 = Some.CertificateDto(start: now.AddHours(-1), end: now, gsrn: _gsrn);
-        
+
         var issueResponse1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
         issueResponse1.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
