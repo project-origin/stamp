@@ -44,6 +44,23 @@ public static class IContainerExtensions
         );
     }
 
+
+
+    public static IWaitForContainerOS UntilEndpointIsReady(this IWaitForContainerOS container, ushort port, string path, Action<IWaitStrategy>? waitStrategyModifier = null)
+    {
+        // This is a workaround to check if an endpoint is ready.
+
+        // Default timeout is 1 minute
+        waitStrategyModifier ??= ws => ws.WithTimeout(TimeSpan.FromMinutes(1));
+
+        return container.UntilHttpRequestIsSucceeded(s =>
+                s.ForPath(path)
+                    .ForPort(port)
+                    .ForStatusCode(HttpStatusCode.NotFound)
+            , waitStrategyModifier
+        );
+    }
+
     public static string GetLocalConnectionString(this PostgreSqlContainer container, string networkAlias)
     {
         var connectionProperties = new Dictionary<string, string>

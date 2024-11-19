@@ -53,6 +53,52 @@ public class CertificateIssuingTests : IDisposable
     }
 
     [Fact]
+    public async Task CanIssueAgainAfterWithdrawn()
+    {
+        var recipientId = await CreateRecipient();
+        var now = DateTimeOffset.UtcNow;
+
+        var cert1 = Some.CertificateDto(start: now.AddHours(-1), end: now, gsrn: _gsrn);
+
+        var issueResponse1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
+        issueResponse1.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var certs1 = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any());
+
+        var withdrawnResponse = await _client.WithdrawCertificate(_registryName, cert1.Id);
+
+        await Task.Delay(TimeSpan.FromSeconds(30));
+
+        var cert2 = Some.CertificateDto(start: now.AddHours(-1), end: now, gsrn: _gsrn);
+        var issueResponse2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert2);
+
+        issueResponse2.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var certs2 = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Count() == 2);
+        certs2.Select(x => x.FederatedStreamId.StreamId).Should().Contain(cert2.Id);
+    }
+
+    [Fact]
+    public async Task CannotIssueCertificateWithSameCertificateIdAndRegistryNameAgainAfterWithdrawn()
+    {
+        var recipientId = await CreateRecipient();
+        var now = DateTimeOffset.UtcNow;
+
+        var cert1 = Some.CertificateDto(start: now.AddHours(-1), end: now, gsrn: _gsrn);
+
+        var issueResponse1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
+        issueResponse1.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var certs = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
+
+        var withdrawnResponse = await _client.WithdrawCertificate(_registryName, cert1.Id);
+
+        var issueResponse2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
+
+        issueResponse2.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
     public async Task WhenCertificateWithMeteringPointIdStartAndEndAlreadyExists_Conflict()
     {
         var recipientId = await CreateRecipient();

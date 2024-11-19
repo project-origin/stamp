@@ -12,6 +12,7 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
     private const int SKIP = 0;
     private const int LIMIT = 3;
 
+    private readonly CertificateRepository _certificateRepository;
     private readonly WithdrawnCertificateRepository _repository;
     private readonly NpgsqlConnection _connection;
 
@@ -20,30 +21,40 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         _connection = new NpgsqlConnection(dbFixture.ConnectionString);
         _connection.Open();
         _repository = new WithdrawnCertificateRepository(_connection);
+        _certificateRepository = new CertificateRepository(_connection);
     }
 
     [Fact]
     public async Task CreateAndGetWithdrawnCertificate()
     {
-        // Arrange
-        var certificateId = Guid.NewGuid();
-        var registryName = "Narnia";
+        var certificate = Some.GranularCertificate();
 
-        // Act
-        await _repository.Create(registryName, certificateId);
+        await _certificateRepository.Create(certificate);
+        await _repository.Withdraw(certificate);
 
-        // Assert
-        var withdrawnCertificate = await _repository.Get(registryName, certificateId);
+        var withdrawnCertificate = await _repository.Get(certificate.RegistryName, certificate.Id);
         withdrawnCertificate.Should().NotBeNull();
-        withdrawnCertificate!.CertificateId.Should().Be(certificateId);
-        withdrawnCertificate.RegistryName.Should().Be(registryName);
+        withdrawnCertificate!.CertificateId.Should().Be(certificate.Id);
+        withdrawnCertificate.RegistryName.Should().Be(certificate.RegistryName);
+        withdrawnCertificate.CertificateType.Should().Be(certificate.CertificateType);
+        withdrawnCertificate.Quantity.Should().Be(certificate.Quantity);
+        withdrawnCertificate.StartDate.Should().Be(certificate.StartDate);
+        withdrawnCertificate.EndDate.Should().Be(certificate.EndDate);
+        withdrawnCertificate.GridArea.Should().Be(certificate.GridArea);
+        withdrawnCertificate.IssuedState.Should().Be(certificate.IssuedState);
+        withdrawnCertificate.RejectionReason.Should().Be(certificate.RejectionReason);
+        withdrawnCertificate.MeteringPointId.Should().Be(certificate.MeteringPointId);
+        withdrawnCertificate.ClearTextAttributes.Should().BeEquivalentTo(certificate.ClearTextAttributes);
+        withdrawnCertificate.HashedAttributes.Should().BeEquivalentTo(certificate.HashedAttributes);
     }
 
     [Fact]
     public async Task GetMultiple_WhenPreviousIdIsUsed_Single()
     {
         // Arrange
-        var withdrawnCertificate = await _repository.Create("Narnia", Guid.NewGuid());
+        var certificate = Some.GranularCertificate();
+        await _certificateRepository.Create(certificate);
+        var withdrawnCertificate = await _repository.Withdraw(certificate);
         int fromId = withdrawnCertificate.Id - 1;
 
         // Act
@@ -61,7 +72,9 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
     public async Task GetMultiple_WhenCurrentIdUsed_Empty()
     {
         // Arrange
-        var withdrawnCertificate = await _repository.Create("Narnia", Guid.NewGuid());
+        var certificate = Some.GranularCertificate();
+        await _certificateRepository.Create(certificate);
+        var withdrawnCertificate = await _repository.Withdraw(certificate);
         int fromId = withdrawnCertificate.Id;
 
         // Act
@@ -161,7 +174,9 @@ public class WithdrawnCertificateRepositoryTests : IClassFixture<PostgresDatabas
         var ids = new List<int>();
         for (int i = 0; i < count; i++)
         {
-            var withdrawnCertificate = await _repository.Create("Narnia", Guid.NewGuid());
+            var certificate = Some.GranularCertificate();
+            await _certificateRepository.Create(certificate);
+            var withdrawnCertificate = await _repository.Withdraw(certificate);
             ids.Add(withdrawnCertificate.Id);
         }
         return ids;
