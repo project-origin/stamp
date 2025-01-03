@@ -2,6 +2,7 @@ using System.Net;
 using ProjectOrigin.Stamp.Server;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using FluentAssertions;
+using ProjectOrigin.Stamp.Server.Metrics;
 using ProjectOrigin.Stamp.Test.Extensions;
 using Xunit;
 using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateType;
@@ -176,7 +177,7 @@ public class CertificateIssuingTests : IDisposable
         var now = DateTimeOffset.UtcNow;
         var certs = Enumerable.Range(0, certsCount)
             .Select(i => Some.CertificateDto(_gridArea, (uint)(42 + i), now.AddHours(i), now.AddHours(i + 1), _gsrn, type))
-        .ToArray();
+            .ToArray();
 
         // Act
         foreach (var cert in certs)
@@ -205,6 +206,104 @@ public class CertificateIssuingTests : IDisposable
             certs[i].HashedAttributes.All(atr => granularCertificates[i].Attributes.ContainsKey(atr.Key) && granularCertificates[i].Attributes.ContainsValue(atr.Value)).Should().BeTrue();
         }
     }
+
+    [Fact]
+    public async Task IssueSingleCertificate_IncrementsCounterByAtLeastOne()
+    {
+        var metrics = _fixture.GetRequiredService<IStampMetrics>();
+        var stampMetrics = metrics as StampMetrics;
+
+        var beforeCounter = stampMetrics!.CurrentCertificatesIssuedCounter;
+
+        var recipientId = await CreateRecipient();
+        var cert = Some.CertificateDto(
+            gsrn: _gsrn,
+            type: CertificateType.Production,
+            gridArea: _gridArea);
+
+        var response = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var certs = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
+        certs.Should().NotBeEmpty();
+
+        var afterCounter = stampMetrics.CurrentCertificatesIssuedCounter;
+
+        afterCounter.Should().BeGreaterThan(beforeCounter);
+    }
+
+    [Fact]
+    public async Task IssueTwoCertificates_IncrementsCounterByAtLeastTwo()
+    {
+        var metrics = _fixture.GetRequiredService<IStampMetrics>();
+        var stampMetrics = metrics as StampMetrics;
+
+        var beforeCounter = stampMetrics!.CurrentCertificatesIssuedCounter;
+
+        var recipientId = await CreateRecipient();
+        var now = DateTimeOffset.UtcNow;
+
+        var cert1 = Some.CertificateDto(
+            _gridArea,
+            42,
+            now,
+            now.AddHours(1),
+            _gsrn,
+            CertificateType.Production
+        );
+
+        var cert2 = Some.CertificateDto(
+            _gridArea,
+            43,
+            now.AddHours(1),
+            now.AddHours(2),
+            _gsrn,
+            CertificateType.Production
+        );
+
+        var response1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
+        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var response2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert2);
+        response2.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var certs = await _walletClient.RepeatedlyGetCertificatesUntil(list => list.Count() == 2, TimeSpan.FromSeconds(60));
+        certs.Should().HaveCount(2);
+
+        var afterCounter = stampMetrics.CurrentCertificatesIssuedCounter;
+
+        afterCounter.Should().Be(beforeCounter + 2);
+    }
+
+    [Fact]
+    public async Task IssueCertificate_SecondIssuanceFails_DoesNotIncrementCounter()
+    {
+        var metrics = _fixture.GetRequiredService<IStampMetrics>();
+        var stampMetrics = metrics as StampMetrics;
+        var beforeCounter = stampMetrics!.CurrentCertificatesIssuedCounter;
+
+        var recipientId = await CreateRecipient();
+        var cert1 = Some.CertificateDto(gsrn: _gsrn, type: CertificateType.Production, gridArea: _gridArea);
+
+        var response1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
+        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
+
+        var midCounter = stampMetrics.CurrentCertificatesIssuedCounter;
+
+        midCounter.Should().BeGreaterThan(beforeCounter);
+
+        var response2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
+        response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        var afterCounter = stampMetrics.CurrentCertificatesIssuedCounter;
+
+        afterCounter.Should().Be(beforeCounter + 1);
+        midCounter.Should().Be(beforeCounter + 1);
+        afterCounter.Should().Be(midCounter);
+    }
+
     private async Task<Guid> CreateRecipient()
     {
         var endpointRef = await _walletClient.CreateWalletAndEndpoint();
