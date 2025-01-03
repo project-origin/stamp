@@ -27,6 +27,7 @@ using ProjectOrigin.Stamp.Server.Serialization;
 using ProjectOrigin.Stamp.Server.Services.REST;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Helpers;
+using ProjectOrigin.Stamp.Server.Metrics;
 
 namespace ProjectOrigin.Stamp.Server;
 
@@ -80,6 +81,7 @@ public class Startup
             .ValidateOnStart();
 
         services.AddHttpClient();
+        services.AddSingleton<IStampMetrics, StampMetrics>();
 
         services.ConfigurePersistance(_configuration);
 
@@ -96,6 +98,7 @@ public class Startup
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
                     .AddMeter(InstrumentationOptions.MeterName)
+                    .AddMeter(StampMetrics.MetricName)
                     .AddRuntimeInstrumentation()
                     .AddProcessInstrumentation()
                     .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!))
