@@ -43,11 +43,4 @@ public class StampMetrics : IStampMetrics
     {
         _certificatesIssuedCounter += count;
     }
-
-    public void Reset()
-    {
-        _certificatesIssued = 0;
-        _certificatesIssuedCounter = 0;
-        _certificatesIssuedGauge = 0;
-    }
 }
