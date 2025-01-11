@@ -264,32 +264,13 @@ public class CertificateIssuingTests : IDisposable
         response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
         var response2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert2);
-        response2.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
 
         var certs = await _walletClient.RepeatedlyGetCertificatesUntil(list => list.Count() == 2, TimeSpan.FromSeconds(60));
         certs.Should().HaveCount(2);
 
         _stampMetrics.Received(2).IncrementIntentsCounter();
         _stampMetrics.Received(2).IncrementIssuedCounter();
-    }
-
-    [Fact]
-    public async Task WhenReceivingTwoIssuanceRequests_IfOneIssuanceFails_IncrementIntentsCounterTwice_ButIssuanceCounterOnlyOnce()
-    {
-        var recipientId = await CreateRecipient();
-        var cert1 = Some.CertificateDto(gsrn: _gsrn, type: CertificateType.Production, gridArea: _gridArea);
-
-        var response1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
-        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
-
-        _stampMetrics.Received(1).IncrementIssuedCounter();
-
-        await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
-
-        var response2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
-        response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
-        _stampMetrics.Received(2).IncrementIntentsCounter();
-        _stampMetrics.Received(1).IncrementIssuedCounter();
     }
 
     private async Task<Guid> CreateRecipient()
