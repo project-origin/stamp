@@ -81,6 +81,7 @@ public class Startup
             .ValidateOnStart();
 
         services.AddHttpClient();
+        services.AddSingleton<MeterBase>();
         services.AddSingleton<IStampMetrics, StampMetrics>();
 
         services.ConfigurePersistance(_configuration);
@@ -98,7 +99,7 @@ public class Startup
                     .AddHttpClientInstrumentation()
                     .AddAspNetCoreInstrumentation()
                     .AddMeter(InstrumentationOptions.MeterName)
-                    .AddMeter(StampMetrics.MetricName)
+                    .AddMeter(MeterBase.MeterName)
                     .AddRuntimeInstrumentation()
                     .AddProcessInstrumentation()
                     .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!))

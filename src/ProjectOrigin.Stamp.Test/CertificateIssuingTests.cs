@@ -2,6 +2,9 @@ using System.Net;
 using ProjectOrigin.Stamp.Server;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 using ProjectOrigin.Stamp.Server.Metrics;
 using ProjectOrigin.Stamp.Test.Extensions;
 using Xunit;
@@ -18,6 +21,7 @@ public class CertificateIssuingTests : IDisposable
     private readonly HttpClient _walletClient;
     private readonly HttpClient _client;
     private readonly string _gsrn;
+    private readonly IStampMetrics _stampMetrics;
 
     public CertificateIssuingTests(EntireStackFixture stack)
     {
@@ -25,6 +29,12 @@ public class CertificateIssuingTests : IDisposable
         _fixture.PostgresConnectionString = stack.postgres.ConnectionString;
         _fixture.RabbitMqOptions = stack.rabbitMq.Options;
         _fixture.RegistryOptions = stack.poStack.RegistryOptions;
+        _stampMetrics = Substitute.For<IStampMetrics>();
+
+        _fixture.ConfigureTestServices += services =>
+        {
+            services.AddSingleton(_stampMetrics);
+        };
 
         _gridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key;
         _registryName = _fixture.RegistryOptions.Registries[0].Name;
@@ -208,13 +218,8 @@ public class CertificateIssuingTests : IDisposable
     }
 
     [Fact]
-    public async Task IssueSingleCertificate_IncrementsCounterByAtLeastOne()
+    public async Task IssueSingleCertificate_IncrementsIssuedAndIntentsCountersByOne()
     {
-        var metrics = _fixture.GetRequiredService<IStampMetrics>();
-        var stampMetrics = metrics as StampMetrics;
-
-        var beforeCounter = stampMetrics!.CurrentCertificatesIssuedCounter;
-
         var recipientId = await CreateRecipient();
         var cert = Some.CertificateDto(
             gsrn: _gsrn,
@@ -227,19 +232,13 @@ public class CertificateIssuingTests : IDisposable
         var certs = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
         certs.Should().NotBeEmpty();
 
-        var afterCounter = stampMetrics.CurrentCertificatesIssuedCounter;
-
-        afterCounter.Should().BeGreaterThan(beforeCounter);
+        _stampMetrics.Received(1).IncrementIntentsCounter();
+        _stampMetrics.Received(1).IncrementIssuedCounter();
     }
 
     [Fact]
-    public async Task IssueTwoCertificates_IncrementsCounterByAtLeastTwo()
+    public async Task IssueTwoCertificates_IncrementsIssuedAndIntentsCountersByTwo()
     {
-        var metrics = _fixture.GetRequiredService<IStampMetrics>();
-        var stampMetrics = metrics as StampMetrics;
-
-        var beforeCounter = stampMetrics!.CurrentCertificatesIssuedCounter;
-
         var recipientId = await CreateRecipient();
         var now = DateTimeOffset.UtcNow;
 
@@ -270,38 +269,27 @@ public class CertificateIssuingTests : IDisposable
         var certs = await _walletClient.RepeatedlyGetCertificatesUntil(list => list.Count() == 2, TimeSpan.FromSeconds(60));
         certs.Should().HaveCount(2);
 
-        var afterCounter = stampMetrics.CurrentCertificatesIssuedCounter;
-
-        afterCounter.Should().Be(beforeCounter + 2);
+        _stampMetrics.Received(2).IncrementIntentsCounter();
+        _stampMetrics.Received(2).IncrementIssuedCounter();
     }
 
     [Fact]
-    public async Task IssueCertificate_SecondIssuanceFails_DoesNotIncrementCounter()
+    public async Task WhenReceivingTwoIssuanceRequests_IfOneIssuanceFails_IncrementIntentsCounterTwice_ButIssuanceCounterOnlyOnce()
     {
-        var metrics = _fixture.GetRequiredService<IStampMetrics>();
-        var stampMetrics = metrics as StampMetrics;
-        var beforeCounter = stampMetrics!.CurrentCertificatesIssuedCounter;
-
         var recipientId = await CreateRecipient();
         var cert1 = Some.CertificateDto(gsrn: _gsrn, type: CertificateType.Production, gridArea: _gridArea);
 
         var response1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
         response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
 
+        _stampMetrics.Received(1).IncrementIssuedCounter();
+
         await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
-
-        var midCounter = stampMetrics.CurrentCertificatesIssuedCounter;
-
-        midCounter.Should().BeGreaterThan(beforeCounter);
 
         var response2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
         response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
-
-        var afterCounter = stampMetrics.CurrentCertificatesIssuedCounter;
-
-        afterCounter.Should().Be(beforeCounter + 1);
-        midCounter.Should().Be(beforeCounter + 1);
-        afterCounter.Should().Be(midCounter);
+        _stampMetrics.Received(2).IncrementIntentsCounter();
+        _stampMetrics.Received(1).IncrementIssuedCounter();
     }
 
     private async Task<Guid> CreateRecipient()

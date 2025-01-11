@@ -54,9 +54,6 @@ public class MarkCertificateAsIssuedConsumer : IConsumer<CertificateIssuedInRegi
 
         await _unitOfWork.CertificateRepository.SetState(message.CertificateId, message.Registry, certificate.IssuedState);
 
-        _stampMetrics.AddCertificatesIssued(1);
-        _stampMetrics.UpdateGauges();
-
         var payloadObj = new CertificateMarkedAsIssuedEvent
         {
             CertificateId = message.CertificateId,
@@ -75,6 +72,7 @@ public class MarkCertificateAsIssuedConsumer : IConsumer<CertificateIssuedInRegi
             JsonPayload = JsonSerializer.Serialize(payloadObj)
         });
         _unitOfWork.Commit();
+        _stampMetrics.IncrementIssuedCounter();
 
         _logger.LogInformation("Certificate with registry {Registry} and certificateId {CertificateId} issued.", message.Registry, message.CertificateId);
     }

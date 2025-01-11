@@ -2,45 +2,26 @@ using System.Diagnostics.Metrics;
 
 namespace ProjectOrigin.Stamp.Server.Metrics;
 
-public class StampMetrics : IStampMetrics
+public interface IStampMetrics
 {
-    public const string MetricName = "StampMetrics";
+    void IncrementIssuedCounter();
+    void IncrementIntentsCounter();
+}
 
-    private long _certificatesIssued;
-    private long _certificatesIssuedCounter;
-    private ObservableCounter<long> _certificatesIssuedCounterObs;
-    private long _certificatesIssuedGauge;
-    private ObservableGauge<long> _certificatesIssuedGaugeObs;
+public class StampMetrics(MeterBase meterBase) : IStampMetrics
+{
+    private readonly Counter<long> _issuanceIssuedCounter =
+        meterBase.Meter.CreateCounter<long>(
+            name: "po.stamp.certificate.issued.count",
+            unit: "1",
+            description: "The number of certificates successfully issued.");
 
-    public long CurrentCertificatesIssuedCounter => _certificatesIssuedCounter;
+    private readonly Counter<long> _issuanceIntentsCounter =
+        meterBase.Meter.CreateCounter<long>(
+            name: "po.stamp.certificate.intent.received.count",
+            unit: "1",
+            description: "The total number of certificate issuance intents received.");
 
-
-    public StampMetrics()
-    {
-        var meter = new Meter(MetricName);
-
-        _certificatesIssuedCounterObs = meter.CreateObservableCounter(
-            name: "certificates_issued",
-            observeValue: () => _certificatesIssuedCounter,
-            description: "Total number of certificates that have been issued."
-        );
-
-        _certificatesIssuedGaugeObs = meter.CreateObservableGauge(
-            name: "certificates_issued_gauge",
-            observeValue: () => _certificatesIssuedGauge,
-            description: "Delta gauge for newly issued certificates since last update."
-        );
-    }
-
-    public void UpdateGauges()
-    {
-        _certificatesIssuedGauge = _certificatesIssuedCounter - _certificatesIssued;
-
-        _certificatesIssued = _certificatesIssuedCounter;
-    }
-
-    public void AddCertificatesIssued(long count)
-    {
-        _certificatesIssuedCounter += count;
-    }
+    public void IncrementIssuedCounter() => _issuanceIssuedCounter.Add(1);
+    public void IncrementIntentsCounter() => _issuanceIntentsCounter.Add(1);
 }

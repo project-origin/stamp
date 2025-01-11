@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Extensions;
+using ProjectOrigin.Stamp.Server.Metrics;
 using ProjectOrigin.Stamp.Server.Models;
 using ProjectOrigin.Stamp.Server.ValueObjects;
 
@@ -17,6 +18,12 @@ namespace ProjectOrigin.Stamp.Server.Services.REST.v1;
 [ApiController]
 public class CertificatesController : ControllerBase
 {
+    private readonly IStampMetrics _stampMetrics;
+
+    public CertificatesController(IStampMetrics stampMetrics)
+    {
+        _stampMetrics = stampMetrics;
+    }
     /// <summary>
     /// Queues a certificate for issuance.
     /// </summary>
@@ -102,6 +109,8 @@ public class CertificatesController : ControllerBase
             MessageType = typeof(CertificateStoredEvent).ToString()
         });
         unitOfWork.Commit();
+
+        _stampMetrics.IncrementIntentsCounter();
 
         return Accepted(new IssueCertificateResponse());
     }
