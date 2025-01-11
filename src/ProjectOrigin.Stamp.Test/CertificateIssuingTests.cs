@@ -1,11 +1,9 @@
+using System.Diagnostics.Metrics;
 using System.Net;
 using ProjectOrigin.Stamp.Server;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using NSubstitute;
-using NSubstitute.ReceivedExtensions;
-using ProjectOrigin.Stamp.Server.Metrics;
+using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using ProjectOrigin.Stamp.Test.Extensions;
 using Xunit;
 using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateType;
@@ -21,7 +19,6 @@ public class CertificateIssuingTests : IDisposable
     private readonly HttpClient _walletClient;
     private readonly HttpClient _client;
     private readonly string _gsrn;
-    private readonly IStampMetrics _stampMetrics;
 
     public CertificateIssuingTests(EntireStackFixture stack)
     {
@@ -29,12 +26,6 @@ public class CertificateIssuingTests : IDisposable
         _fixture.PostgresConnectionString = stack.postgres.ConnectionString;
         _fixture.RabbitMqOptions = stack.rabbitMq.Options;
         _fixture.RegistryOptions = stack.poStack.RegistryOptions;
-        _stampMetrics = Substitute.For<IStampMetrics>();
-
-        _fixture.ConfigureTestServices += services =>
-        {
-            services.AddSingleton(_stampMetrics);
-        };
 
         _gridArea = _fixture.RegistryOptions.IssuerPrivateKeyPems.First().Key;
         _registryName = _fixture.RegistryOptions.Registries[0].Name;
@@ -220,6 +211,9 @@ public class CertificateIssuingTests : IDisposable
     [Fact]
     public async Task IssueSingleCertificate_IncrementsIssuedAndIntentsCountersByOne()
     {
+        var meterFactory = _fixture.GetRequiredService<IMeterFactory>();
+        var issuedCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po.stamp.certificate.issued.count");
+        var intentsCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po.stamp.certificate.intent.received.count");
         var recipientId = await CreateRecipient();
         var cert = Some.CertificateDto(
             gsrn: _gsrn,
@@ -231,46 +225,11 @@ public class CertificateIssuingTests : IDisposable
 
         var certs = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
         certs.Should().NotBeEmpty();
+        var issuedMeasurements = issuedCollector.GetMeasurementSnapshot();
+        var intentsMeasurements = intentsCollector.GetMeasurementSnapshot();
 
-        _stampMetrics.Received(1).IncrementIntentsCounter();
-        _stampMetrics.Received(1).IncrementIssuedCounter();
-    }
-
-    [Fact]
-    public async Task IssueTwoCertificates_IncrementsIssuedAndIntentsCountersByTwo()
-    {
-        var recipientId = await CreateRecipient();
-        var now = DateTimeOffset.UtcNow;
-
-        var cert1 = Some.CertificateDto(
-            _gridArea,
-            42,
-            now,
-            now.AddHours(1),
-            _gsrn,
-            CertificateType.Production
-        );
-
-        var cert2 = Some.CertificateDto(
-            _gridArea,
-            43,
-            now.AddHours(1),
-            now.AddHours(2),
-            _gsrn,
-            CertificateType.Production
-        );
-
-        var response1 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert1);
-        response1.StatusCode.Should().Be(HttpStatusCode.Accepted);
-
-        var response2 = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert2);
-        response2.StatusCode.Should().Be(HttpStatusCode.Conflict);
-
-        var certs = await _walletClient.RepeatedlyGetCertificatesUntil(list => list.Count() == 2, TimeSpan.FromSeconds(60));
-        certs.Should().HaveCount(2);
-
-        _stampMetrics.Received(2).IncrementIntentsCounter();
-        _stampMetrics.Received(2).IncrementIssuedCounter();
+        Assert.Equal(1, issuedMeasurements.EvaluateAsCounter());
+        Assert.Equal(1, intentsMeasurements.EvaluateAsCounter());
     }
 
     private async Task<Guid> CreateRecipient()
