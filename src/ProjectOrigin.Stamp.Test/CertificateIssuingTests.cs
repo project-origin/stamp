@@ -1,7 +1,9 @@
+using System.Diagnostics.Metrics;
 using System.Net;
 using ProjectOrigin.Stamp.Server;
 using ProjectOrigin.Stamp.Test.TestClassFixtures;
 using FluentAssertions;
+using Microsoft.Extensions.Diagnostics.Metrics.Testing;
 using ProjectOrigin.Stamp.Test.Extensions;
 using Xunit;
 using CertificateType = ProjectOrigin.Stamp.Server.Services.REST.v1.CertificateType;
@@ -176,7 +178,7 @@ public class CertificateIssuingTests : IDisposable
         var now = DateTimeOffset.UtcNow;
         var certs = Enumerable.Range(0, certsCount)
             .Select(i => Some.CertificateDto(_gridArea, (uint)(42 + i), now.AddHours(i), now.AddHours(i + 1), _gsrn, type))
-        .ToArray();
+            .ToArray();
 
         // Act
         foreach (var cert in certs)
@@ -205,6 +207,31 @@ public class CertificateIssuingTests : IDisposable
             certs[i].HashedAttributes.All(atr => granularCertificates[i].Attributes.ContainsKey(atr.Key) && granularCertificates[i].Attributes.ContainsValue(atr.Value)).Should().BeTrue();
         }
     }
+
+    [Fact]
+    public async Task IssueSingleCertificate_IncrementsIssuedAndIntentsCountersByOne()
+    {
+        var meterFactory = _fixture.GetRequiredService<IMeterFactory>();
+        var issuedCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po_stamp_certificate_issued_count");
+        var intentsCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po_stamp_certificate_intent_received_count");
+        var recipientId = await CreateRecipient();
+        var cert = Some.CertificateDto(
+            gsrn: _gsrn,
+            type: CertificateType.Production,
+            gridArea: _gridArea);
+
+        var response = await _client.PostCertificate(recipientId, _registryName, _gsrn, cert);
+        response.StatusCode.Should().Be(HttpStatusCode.Accepted);
+
+        var certs = await _walletClient.RepeatedlyGetCertificatesUntil(certs => certs.Any(), TimeSpan.FromSeconds(60));
+        certs.Should().NotBeEmpty();
+        var issuedMeasurements = issuedCollector.GetMeasurementSnapshot();
+        var intentsMeasurements = intentsCollector.GetMeasurementSnapshot();
+
+        Assert.Equal(1, issuedMeasurements.EvaluateAsCounter());
+        Assert.Equal(1, intentsMeasurements.EvaluateAsCounter());
+    }
+
     private async Task<Guid> CreateRecipient()
     {
         var endpointRef = await _walletClient.CreateWalletAndEndpoint();

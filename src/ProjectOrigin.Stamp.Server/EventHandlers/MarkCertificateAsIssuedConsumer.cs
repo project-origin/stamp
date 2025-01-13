@@ -7,6 +7,7 @@ using ProjectOrigin.Stamp.Server.Database;
 using ProjectOrigin.Stamp.Server.Extensions;
 using ProjectOrigin.Stamp.Server.Models;
 using Microsoft.Extensions.Options;
+using ProjectOrigin.Stamp.Server.Metrics;
 using ProjectOrigin.Stamp.Server.Options;
 
 namespace ProjectOrigin.Stamp.Server.EventHandlers;
@@ -24,12 +25,16 @@ public class MarkCertificateAsIssuedConsumer : IConsumer<CertificateIssuedInRegi
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<MarkCertificateAsIssuedConsumer> _logger;
+    private readonly IStampMetrics _stampMetrics;
+
 
     public MarkCertificateAsIssuedConsumer(IUnitOfWork unitOfWork,
-        ILogger<MarkCertificateAsIssuedConsumer> logger)
+        ILogger<MarkCertificateAsIssuedConsumer> logger,
+        IStampMetrics stampMetrics)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _stampMetrics = stampMetrics;
     }
 
     public async Task Consume(ConsumeContext<CertificateIssuedInRegistryEvent> context)
@@ -67,6 +72,7 @@ public class MarkCertificateAsIssuedConsumer : IConsumer<CertificateIssuedInRegi
             JsonPayload = JsonSerializer.Serialize(payloadObj)
         });
         _unitOfWork.Commit();
+        _stampMetrics.IncrementIssuedCounter();
 
         _logger.LogInformation("Certificate with registry {Registry} and certificateId {CertificateId} issued.", message.Registry, message.CertificateId);
     }
