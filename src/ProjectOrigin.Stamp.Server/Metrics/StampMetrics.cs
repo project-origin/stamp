@@ -12,13 +12,13 @@ public class StampMetrics(MeterBase meterBase) : IStampMetrics
 {
     private readonly Counter<long> _issuanceIssuedCounter =
         meterBase.Meter.CreateCounter<long>(
-            name: "po.stamp.certificate.issued.count",
+            name: "po_stamp_certificate_issued_count",
             unit: "1",
             description: "The number of certificates successfully issued.");
 
     private readonly Counter<long> _issuanceIntentsCounter =
         meterBase.Meter.CreateCounter<long>(
-            name: "po.stamp.certificate.intent.received.count",
+            name: "po_stamp_certificate_intent_received_count",
             unit: "1",
             description: "The total number of certificate issuance intents received.");
 

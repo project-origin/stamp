@@ -212,8 +212,8 @@ public class CertificateIssuingTests : IDisposable
     public async Task IssueSingleCertificate_IncrementsIssuedAndIntentsCountersByOne()
     {
         var meterFactory = _fixture.GetRequiredService<IMeterFactory>();
-        var issuedCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po.stamp.certificate.issued.count");
-        var intentsCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po.stamp.certificate.intent.received.count");
+        var issuedCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po_stamp_certificate_issued_count");
+        var intentsCollector = new MetricCollector<long>(meterFactory, "ProjectOrigin.Stamp", "po_stamp_certificate_intent_received_count");
         var recipientId = await CreateRecipient();
         var cert = Some.CertificateDto(
             gsrn: _gsrn,
