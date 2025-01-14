@@ -228,8 +228,7 @@ public class CertificateIssuingTests : IDisposable
         var issuedMeasurements = issuedCollector.GetMeasurementSnapshot();
         var intentsMeasurements = intentsCollector.GetMeasurementSnapshot();
 
-        issuedMeasurements.GetEnumerator().Current.Tags.Should().ContainValue("Production");
-
+        issuedMeasurements[0].Tags["CertificateType"].Should().Be("Production");
         Assert.Equal(1, issuedMeasurements.EvaluateAsCounter());
         Assert.Equal(1, intentsMeasurements.EvaluateAsCounter());
     }
