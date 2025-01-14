@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using System.Diagnostics.Metrics;
+using ProjectOrigin.Stamp.Server.Models;
 
 namespace ProjectOrigin.Stamp.Server.Metrics;
 
 public interface IStampMetrics
 {
-    void IncrementIssuedCounter();
+    void IncrementIssuedCounter(GranularCertificateType type);
     void IncrementIntentsCounter();
 }
 
@@ -22,6 +24,6 @@ public class StampMetrics(MeterBase meterBase) : IStampMetrics
             unit: "1",
             description: "The total number of certificate issuance intents received.");
 
-    public void IncrementIssuedCounter() => _issuanceIssuedCounter.Add(1);
+    public void IncrementIssuedCounter(GranularCertificateType type) => _issuanceIssuedCounter.Add(1, new KeyValuePair<string, object?>("CertificateType", type.ToString()));
     public void IncrementIntentsCounter() => _issuanceIntentsCounter.Add(1);
 }

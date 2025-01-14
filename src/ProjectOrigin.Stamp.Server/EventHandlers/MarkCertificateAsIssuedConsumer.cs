@@ -72,7 +72,7 @@ public class MarkCertificateAsIssuedConsumer : IConsumer<CertificateIssuedInRegi
             JsonPayload = JsonSerializer.Serialize(payloadObj)
         });
         _unitOfWork.Commit();
-        _stampMetrics.IncrementIssuedCounter();
+        _stampMetrics.IncrementIssuedCounter(certificate.CertificateType);
 
         _logger.LogInformation("Certificate with registry {Registry} and certificateId {CertificateId} issued.", message.Registry, message.CertificateId);
     }
