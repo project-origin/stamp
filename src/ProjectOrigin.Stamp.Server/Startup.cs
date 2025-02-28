@@ -101,18 +101,9 @@ public class Startup
                     .AddMeter(InstrumentationOptions.MeterName)
                     .AddMeter(MeterBase.MeterName)
                     .AddRuntimeInstrumentation()
-                    .AddProcessInstrumentation()
                     .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!))
                 .WithTracing(provider =>
                     provider
-                        .AddGrpcClientInstrumentation(grpcOptions =>
-                        {
-                            grpcOptions.EnrichWithHttpRequestMessage = (activity, httpRequestMessage) =>
-                                activity.SetTag("requestVersion", httpRequestMessage.Version);
-                            grpcOptions.EnrichWithHttpResponseMessage = (activity, httpResponseMessage) =>
-                                activity.SetTag("responseVersion", httpResponseMessage.Version);
-                            grpcOptions.SuppressDownstreamInstrumentation = true;
-                        })
                         .AddHttpClientInstrumentation()
                         .AddAspNetCoreInstrumentation()
                         .AddNpgsql()
