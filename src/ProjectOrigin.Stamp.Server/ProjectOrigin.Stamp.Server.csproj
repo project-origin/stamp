@@ -55,10 +55,10 @@
 
   <ItemGroup>
     <Protobuf Include="../Protos/common.proto" Link="Protos\common.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v2.1.0/protos/common.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v2.2.2/protos/common.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/registry.proto" Link="Protos\registry.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v2.1.0/protos/registry.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v2.2.2/protos/registry.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/electricity.proto" Link="Protos\electricity.proto">
       <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v1.2.0/protos/electricity.proto</SourceUrl>
