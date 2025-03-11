@@ -18,24 +18,24 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
-    <PackageReference Include="dbup-postgresql" Version="5.0.40" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
-    <PackageReference Include="MassTransit" Version="8.3.6" />
-    <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.6" />
+    <PackageReference Include="dbup-postgresql" Version="6.0.3" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.70.0" />
+    <PackageReference Include="MassTransit" Version="8.3.7" />
+    <PackageReference Include="MassTransit.RabbitMQ" Version="8.3.7" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
     <PackageReference Include="NSec.Cryptography" Version="24.4.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.7.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.2" />
-    <PackageReference Include="OpenTelemetry" Version="1.11.1" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.1" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.3" />
+    <PackageReference Include="OpenTelemetry" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.1" />
     <PackageReference Include="ProjectOrigin.PedersenCommitment" Version="1.1.1" />
-    <PackageReference Include="ProjectOrigin.HierarchicalDeterministicKeys" Version="1.1.0" />
+    <PackageReference Include="ProjectOrigin.HierarchicalDeterministicKeys" Version="1.2.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Enrichers.Span" Version="3.1.0" />
     <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
@@ -55,13 +55,13 @@
 
   <ItemGroup>
     <Protobuf Include="../Protos/common.proto" Link="Protos\common.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v2.1.0/protos/common.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.1/protos/common.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/registry.proto" Link="Protos\registry.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v2.1.0/protos/registry.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.1/protos/registry.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/electricity.proto" Link="Protos\electricity.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v1.2.0/protos/electricity.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v3.0.1-rc.1/protos/electricity.proto</SourceUrl>
     </Protobuf>
   </ItemGroup>
 
