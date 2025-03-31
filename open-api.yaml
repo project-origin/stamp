@@ -1,0 +1,136 @@
+openapi: 3.0.0
+info:
+  description: This is a preliminary API for the OriginStamp service
+  version: "0.0.1"
+  title: OriginStamp
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: recipients
+    description: bla bla bla chistoffer bla bla bla 
+
+paths:
+  /v1/recipients:
+    post:
+      summary: Creates a new recipient
+      description: Create a new recipient to allow Stamp to issue certificates to the recipients wallet.
+      operationId: CreateRecipient
+      tags:
+        - recipients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/recipientPost'
+      responses:
+        '201':
+          description: Recipient created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/recipientCreated'
+        '400':
+          description: Invalid create request
+          
+  /v1/certificates:
+    post:
+      summary: Queues a certificate to be issued to a recipient
+      description: Queues a certificate to be issued to the registry and recipients wallet.
+      operationId: IssueCertificate
+      tags:
+        - issue
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipient: 
+                  type: string
+                  format: uuid
+                  example: f5d8ee39-0f64-4a8f-9d4e-e25b8f3a5b3f
+                certificate:
+                  $ref: '#/components/schemas/certificate'
+      responses:
+        '202':
+          description: Accepted for issuance.
+        '400':
+          description: Invalid issuance request.
+
+components:
+  schemas:
+    certificate: 
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [production, consumption]
+        quantity:
+          description: "The number of watt hours on the certificate"
+          type: integer
+          format: int64
+          example: 1200
+        start:
+          description: "The start of the time range in Unix time in seconds."
+          type: integer
+          format: int64
+          example: 1641376800
+        end:
+          description: "The end of the time range in Unix time in seconds."
+          type: integer
+          format: int64
+          example: 1641380400
+        gridArea:
+          type: string
+          description: "The grid area of where the certificate exists within"
+          example: "DK1"
+        clearTextAttributes:
+          description: "Attributes to be added to the certificate that are clear-text and everyone can see."
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            fuelCode: "F1023433"
+            techCode: "T1023431"
+        hashedAttributes:
+          description: "Attributes that are only viewable by an owner given access to the attribute."
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            assetId: "123456789"
+          
+    recipientPost:
+      type: object
+      required:
+        - walletEndpointReference
+      properties:
+        walletEndpointReference:
+          $ref: '#/components/schemas/walletEndpointReference'
+          
+    recipientCreated:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: f5d8ee39-0f64-4a8f-9d4e-e25b8f3a5b3f
+          
+    walletEndpointReference:
+      type: object
+      required:
+        - endpoint
+        - publicKey
+        - version
+      properties:
+        version:
+          type: integer
+          example: 1
+        endpoint:
+          type: string
+          format: url
+          example: https://example.com/wallet
+        publicKey:
+          type: string
+          example: c2FydGhzdGhyc3J1amhzcnR2anNyeXRqc2pydHk=
