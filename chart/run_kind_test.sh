@@ -64,6 +64,16 @@ image:
 
 messageBroker:
   type: rabbitmqOperator
+
+postgresql:
+  host: postgresql
+  database: postgres
+  username: postgres
+  port: 5432
+  password:
+    secretRef:
+      name: postgresql
+      key: postgres-password
 EOF
 
 # install stamp chart
