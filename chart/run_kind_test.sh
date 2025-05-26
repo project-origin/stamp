@@ -48,8 +48,8 @@ kind create cluster -n ${cluster_name}
 # install rabbitmq-operator
 kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/download/v2.5.0/cluster-operator.yml"
 
-# install cnpg-operator
-helm install cnpg-operator cloudnative-pg --repo https://cloudnative-pg.io/charts --version 0.18.0 --namespace cnpg --create-namespace --wait
+# install postgresql
+helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql --version 15.5.23 --kube-context kind-${cluster_name}
 
 # build docker image
 docker build -f src/Stamp.Dockerfile -t ghcr.io/project-origin/stamp:test src/
