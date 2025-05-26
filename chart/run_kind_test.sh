@@ -49,7 +49,7 @@ kind create cluster -n ${cluster_name}
 kubectl apply -f "https://github.com/rabbitmq/cluster-operator/releases/download/v2.5.0/cluster-operator.yml"
 
 # install postgresql
-helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql --version 15.5.23 --kube-context kind-${cluster_name}
+helm install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql --version 15.5.23 --kube-context kind-${cluster_name} --namespace stamp --create-namespace --wait
 
 # build docker image
 docker build -f src/Stamp.Dockerfile -t ghcr.io/project-origin/stamp:test src/
@@ -77,6 +77,6 @@ postgresql:
 EOF
 
 # install stamp chart
-helm install stamp ./chart --values ${values_filename} --namespace stamp --create-namespace --wait
+helm install stamp ./chart --values ${values_filename} --namespace stamp --wait
 
 echo "Test completed"
