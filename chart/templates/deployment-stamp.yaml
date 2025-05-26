@@ -32,6 +32,8 @@ spec:
           args:
             - "--serve"
           env:
+            {{- include "common.database.config" $ | nindent 12 }}
+
             - name: RestApiOptions__PathBase
               value: {{ .Values.config.pathBase }}
           {{- if eq .Values.messageBroker.type "inMemory" }}
@@ -93,35 +95,6 @@ spec:
           {{- range .Values.issuerPrivateKeyPems }}
             - name: IssuerPrivateKeyPems__{{ .gridArea }}
               value: {{ .key }}
-          {{- end }}
-
-          {{- if eq .Values.persistence.type "CloudNativePG" }}
-            - name: DB_HOST
-              value: {{ .Values.persistence.cloudNativePG.name }}-rw
-            - name: DB_PORT
-              value: "5432"
-            - name: DB_DATABASE
-              value: {{ .Values.persistence.cloudNativePG.database }}
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.persistence.cloudNativePG.name }}-app
-                  key: username
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.persistence.cloudNativePG.name }}-app
-                  key: password
-            - name: ConnectionStrings__Database
-              value: "Host=$(DB_HOST);Port=$(DB_PORT);Database=$(DB_DATABASE);Username=$(DB_USERNAME);Password=$(DB_PASSWORD);"
-          {{- else if eq .Values.persistence.type "BYOD" }}
-            - name: ConnectionStrings__Database
-              valueFrom:
-                secretKeyRef:
-                  name: {{ required "BYOD is selected as the database type, but no secretName is provided in persistence.byod" .Values.persistence.byod.secretName }}
-                  key: {{ required "BYOD is selected as the database type, but no secretKey is provided in persistence.byod" .Values.persistence.byod.secretKey }}
-          {{- else }}
-            {{- fail "Unsupported database type specified. Please specify 'persistence.type' as either 'CloudNativePG' or 'BYOD'." }}
           {{- end }}
 
             # OpenTelemetry Collector Configuration
