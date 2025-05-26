@@ -55,7 +55,7 @@
 
   <ItemGroup>
     <Protobuf Include="../Protos/common.proto" Link="Protos\common.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.1/protos/common.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.3/protos/common.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/registry.proto" Link="Protos\registry.proto">
       <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.3/protos/registry.proto</SourceUrl>
