@@ -25,7 +25,7 @@
     <PackageReference Include="Npgsql" Version="9.0.3" />
     <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
     <PackageReference Include="NSec.Cryptography" Version="24.4.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.8.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.3" />
     <PackageReference Include="OpenTelemetry" Version="1.11.2" />
@@ -55,13 +55,13 @@
 
   <ItemGroup>
     <Protobuf Include="../Protos/common.proto" Link="Protos\common.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.1/protos/common.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.3/protos/common.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/registry.proto" Link="Protos\registry.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.1/protos/registry.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.3/protos/registry.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/electricity.proto" Link="Protos\electricity.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v3.0.1-rc.1/protos/electricity.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v4.0.0/protos/electricity.proto</SourceUrl>
     </Protobuf>
   </ItemGroup>
 

@@ -43,7 +43,7 @@ messageBroker:
     username:
     # password defines the password to use to connect to the rabbitmq server
     password:
-    
+
   retry:
     # number of times Stamp consumers retrys messages on errors with a 3 minute incrementing interval.
     defaultFirstLevelRetryCount: 5
@@ -71,34 +71,47 @@ issuerPrivateKeyPems: []
   # - gridArea: narnia
   #   key: 1234567890
 
-# persistence defines the persistence configuration for the stamp server
-persistence:
-
-  # type defines which database to use. "CloudNativePG" for built-in PostgreSQL or "BYOD" (Bring Your Own Database) for using an external PostgreSQL database. Only PostgreSQL is supported.
-  type: "CloudNativePG"
-
-  # cloudNativePG determines if the database is created as a cloud native postgresql instance
-  cloudNativePG:
-
-    # name defines the name of the cloud native postgresql instance
-    name: cnpg-stamp-db
-
-    # owner defines the owner of the database
-    owner: app
-
-    # database defines the name of the database to create
-    database: stamp-database
-
-    # replicas defines the number of database instances to run
-    replicas: 3
-
-    # storage defines the storage configuration for the database
-    size: 10Gi
-
-  # BYOD (Bring Your Own Database) configuration
-  byod:
-
-    # Create a secret with the DB connection info and provide the secret name here
-    secretName: ""
-    # Specify the key within the secret that contains the DB connection string
-    secretKey: ""
+# postgresql holds the configuration for the postgresql database, each value is required and can be set directly, via a secretRef, or via a configMapRef
+postgresql:
+  # host defines the host of the postgresql database
+  host:
+    # secretRef:
+    #   name:
+    #   key:
+    # configMapRef:
+    #   name:
+    #   key:
+  # port defines the port of the postgresql database
+  port:
+    # secretRef:
+    #   name:
+    #   key:
+    # configMapRef:
+    #   name:
+    #   key:
+  # database defines the name of the postgresql database
+  database:
+    # secretRef:
+    #   name:
+    #   key:
+    # configMapRef:
+    #   name:
+    #   key:
+  # username defines the username to use to connect to the postgresql database
+  username:
+    # secretRef:
+    #   name:
+    #   key:
+    # configMapRef:
+    #   name:
+    #   key:
+  # password defines the password to use to connect to the postgresql database
+  password:
+    # secretRef:
+    #   name:
+    #   key:
+    # configMapRef:
+    #   name:
+    #   key:
+  # maxPoolSize defines the maximum connection pool size pr replica
+  maxPoolSize: 30

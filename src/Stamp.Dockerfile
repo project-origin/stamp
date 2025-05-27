@@ -1,7 +1,7 @@
 ARG PROJECT=ProjectOrigin.Stamp.Server
 ARG USER=dotnetuser
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0.201 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0.300 AS build
 ARG PROJECT
 
 WORKDIR /src
@@ -14,7 +14,7 @@ RUN dotnet build ${PROJECT} -c Release --no-restore -o /app/build
 RUN dotnet publish ${PROJECT} -c Release -o /app/publish
 
 # ------- production image -------
-FROM mcr.microsoft.com/dotnet/aspnet:9.0.3-noble AS production
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.4-noble AS production
 ARG PROJECT
 ARG USER
 
