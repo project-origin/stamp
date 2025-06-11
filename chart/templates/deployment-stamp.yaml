@@ -23,12 +23,14 @@ spec:
       initContainers:
         - name: wait-for-migration
           image: groundnuty/k8s-wait-for:v2.0 # TODO verify this image
+          securityContext: {{ toYaml .Values.initContainers.securityContext | nindent 12 }}
           args:
             - "job"
             - "po-stamp-migrate-job-{{ .Values.image.tag | default .Chart.AppVersion | replace "." "-" }}"
       containers:
         - name: po-stamp
           image: {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+          securityContext: {{ toYaml .Values.securityContext | nindent 12 }}
           args:
             - "--serve"
           env:
