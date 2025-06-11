@@ -14,6 +14,7 @@ spec:
       containers:
         - name: po-stamp-migrate-job
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          securityContext: {{ toYaml .Values.job.securityContext | nindent 12 }}      
           args:
             - "--migrate"
           env:
