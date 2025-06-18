@@ -75,7 +75,6 @@ public class WaitForCommittedRegistryTransactionConsumer : IConsumer<Certificate
             }
 
             string infoMessage = $"Transaction {message.ShaId} is still processing on registry for certificateId: {message.CertificateId}.";
-            _logger.LogInformation(infoMessage);
             throw new RegistryTransactionStillProcessingException(infoMessage);
         }
         catch (RpcException ex)
