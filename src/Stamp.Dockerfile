@@ -25,6 +25,4 @@ COPY --from=build /app/publish .
 EXPOSE 5000
 EXPOSE 5001
 
-USER $APP_UID
-
-ENTRYPOINT ["dotnet", "${APPLICATION}.dll"]
+ENTRYPOINT ["dotnet", "ProjectOrigin.Stamp.Server.dll"]
