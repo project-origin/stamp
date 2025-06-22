@@ -167,10 +167,7 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
-            endpoints.MapHealthChecks("/health/live",
-                new HealthCheckOptions { Predicate = hc => hc.Name == "self" });
-            endpoints.MapHealthChecks("/health/ready",
-                new HealthCheckOptions { Predicate = _ => true });
+            endpoints.MapHealthChecks("/health");
         });
 
         app.ConfigureSqlMappers();
