@@ -20,6 +20,8 @@ ENV APPLICATION=${PROJECT}
 
 WORKDIR /app
 
+COPY --from=build /app/publish .
+
 EXPOSE 5000
 EXPOSE 5001
 
