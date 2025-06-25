@@ -23,14 +23,16 @@ public class OutboxPollingWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (true)
+        var done = false;
+        while (!done)
         {
-            stoppingToken.ThrowIfCancellationRequested();
-            using var scope = _serviceProvider.CreateScope();
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-            var bus = scope.ServiceProvider.GetRequiredService<IBus>();
             try
             {
+                stoppingToken.ThrowIfCancellationRequested();
+                using var scope = _serviceProvider.CreateScope();
+                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var bus = scope.ServiceProvider.GetRequiredService<IBus>();
+
                 var msg = await unitOfWork.OutboxMessageRepository.GetFirst();
 
                 if (msg != null)
@@ -57,6 +59,7 @@ public class OutboxPollingWorker : BackgroundService
             catch (OperationCanceledException e)
             {
                 _logger.LogInformation(e, "OutboxPollingWorker was cancelled");
+                done = true;
             }
             catch (Exception e)
             {
