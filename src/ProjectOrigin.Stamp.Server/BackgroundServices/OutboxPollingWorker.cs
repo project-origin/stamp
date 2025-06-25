@@ -62,7 +62,6 @@ public class OutboxPollingWorker : BackgroundService
             {
                 _logger.LogError(e, "Error in OutboxPollingWorker");
             }
-
         }
     }
 }
