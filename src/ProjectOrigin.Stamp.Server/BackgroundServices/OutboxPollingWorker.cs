@@ -23,34 +23,46 @@ public class OutboxPollingWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while (!stoppingToken.IsCancellationRequested)
+        while (true)
         {
+            stoppingToken.ThrowIfCancellationRequested();
             using var scope = _serviceProvider.CreateScope();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             var bus = scope.ServiceProvider.GetRequiredService<IBus>();
-
-            var msg = await unitOfWork.OutboxMessageRepository.GetFirst();
-
-            if (msg != null)
+            try
             {
-                try
-                {
-                    _logger.LogInformation("Processing outbox message {msgId}.", msg.Id);
-                    var type = Type.GetType($"{msg.MessageType}, ProjectOrigin.Stamp.Server");
-                    var loadedObject = JsonSerializer.Deserialize(msg.JsonPayload, type!);
+                var msg = await unitOfWork.OutboxMessageRepository.GetFirst();
 
-                    await bus.Publish(loadedObject!, stoppingToken);
-                    await unitOfWork.OutboxMessageRepository.Delete(msg.Id);
-                    unitOfWork.Commit();
-                }
-                catch (Exception ex)
+                if (msg != null)
                 {
-                    _logger.LogError(ex, "Error while processing outbox message.");
-                    unitOfWork.Rollback();
+                    try
+                    {
+                        _logger.LogInformation("Processing outbox message {msgId}.", msg.Id);
+                        var type = Type.GetType($"{msg.MessageType}, ProjectOrigin.Stamp.Server");
+                        var loadedObject = JsonSerializer.Deserialize(msg.JsonPayload, type!);
+
+                        await bus.Publish(loadedObject!, stoppingToken);
+                        await unitOfWork.OutboxMessageRepository.Delete(msg.Id);
+                        unitOfWork.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error while processing outbox message.");
+                        unitOfWork.Rollback();
+                    }
                 }
+                else
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
             }
-            else
-                await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            catch (OperationCanceledException e)
+            {
+                _logger.LogInformation(e, "OutboxPollingWorker was cancelled");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error in OutboxPollingWorker");
+            }
+
         }
     }
 }
