@@ -62,7 +62,7 @@
       <SourceUrl>https://raw.githubusercontent.com/project-origin/registry/v3.0.5/protos/registry.proto</SourceUrl>
     </Protobuf>
     <Protobuf Include="../Protos/electricity.proto" Link="Protos\electricity.proto">
-      <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v4.1.0/protos/electricity.proto</SourceUrl>
+      <SourceUrl>https://raw.githubusercontent.com/project-origin/verifier_electricity/v4.1.1/protos/electricity.proto</SourceUrl>
     </Protobuf>
   </ItemGroup>
 
