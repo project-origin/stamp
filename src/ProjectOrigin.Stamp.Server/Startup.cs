@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using MassTransit;
 using MassTransit.Logging;
 using MassTransit.Monitoring;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Npgsql;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -53,6 +54,8 @@ public class Startup
                 o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
                 o.JsonSerializerOptions.Converters.Add(new IHDPublicKeyConverter(algorithm));
             });
+
+        services.AddHealthChecks();
 
         services.AddSwaggerGen(o =>
         {
@@ -113,6 +116,8 @@ public class Startup
 
         services.AddMassTransit(o =>
         {
+            o.DisableUsageTelemetry(); // https://masstransit.io/documentation/configuration/usage-telemetry
+            o.AddHealthChecks();
             o.SetKebabCaseEndpointNameFormatter();
 
             o.AddConfigureEndpointsCallback((name, cfg) =>
@@ -162,6 +167,10 @@ public class Startup
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
+            endpoints.MapHealthChecks("/health/live",
+                new HealthCheckOptions { Predicate = hc => hc.Name == "self" });
+            endpoints.MapHealthChecks("/health/ready",
+                new HealthCheckOptions { Predicate = _ => true });
         });
 
         app.ConfigureSqlMappers();
