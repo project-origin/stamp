@@ -23,8 +23,7 @@ public class OutboxPollingWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var done = false;
-        while (!done)
+        while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
@@ -59,7 +58,6 @@ public class OutboxPollingWorker : BackgroundService
             catch (OperationCanceledException e)
             {
                 _logger.LogInformation(e, "OutboxPollingWorker was cancelled");
-                done = true;
             }
             catch (Exception e)
             {
