@@ -27,7 +27,6 @@ public class OutboxPollingWorker : BackgroundService
         {
             try
             {
-                stoppingToken.ThrowIfCancellationRequested();
                 using var scope = _serviceProvider.CreateScope();
                 var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
                 var bus = scope.ServiceProvider.GetRequiredService<IBus>();
