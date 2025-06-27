@@ -56,7 +56,7 @@ public class OutboxPollingWorker : BackgroundService
             }
             catch (OperationCanceledException e)
             {
-                _logger.LogInformation(e, "OutboxPollingWorker was cancelled");
+                _logger.LogWarning(e, "OutboxPollingWorker was cancelled");
             }
             catch (Exception e)
             {
