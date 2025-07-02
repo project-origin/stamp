@@ -115,7 +115,7 @@ public class Startup
                         .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!));
         }
 
-        services.AddScoped(typeof(RetryLoggingConsumeFilter<>));
+        services.AddSingleton<RetryLoggingObserver>();
 
         services.AddMassTransit(o =>
         {
