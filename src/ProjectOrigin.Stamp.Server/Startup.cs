@@ -29,6 +29,7 @@ using ProjectOrigin.Stamp.Server.Services.REST;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Metrics;
+using ProjectOrigin.Stamp.Server.Filters;
 
 namespace ProjectOrigin.Stamp.Server;
 
@@ -113,6 +114,8 @@ public class Startup
                         .AddSource(DiagnosticHeaders.DefaultListenerName)
                         .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!));
         }
+
+        services.AddScoped(typeof(RetryLoggingConsumeFilter<>));
 
         services.AddMassTransit(o =>
         {
