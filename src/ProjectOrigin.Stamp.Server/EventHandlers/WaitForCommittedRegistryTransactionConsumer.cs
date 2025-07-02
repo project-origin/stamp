@@ -117,7 +117,6 @@ public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDef
             r.Handle(typeof(RegistryTransactionStillProcessingException));
         }));
 
-        // TODO: Register in DI
         endpointConfigurator.UseConsumeFilter(typeof(RetryLoggingConsumeFilter<>), context);
 
     }
