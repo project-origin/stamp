@@ -105,8 +105,8 @@ public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDef
         IConsumerConfigurator<WaitForCommittedRegistryTransactionConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
-        // Register ConsumeFilter for logging before MessageRetry so it observes all retry attempts and exceptions
-        endpointConfigurator.UseConsumeFilter(typeof(RetryLoggingConsumeFilter<>), context);
+        // Register RetryLoggingConsumeFilter before MessageRetry so it observes all retry attempts and exceptions
+        endpointConfigurator.UseConsumeFilter<RetryLoggingConsumeFilter<WaitForCommittedRegistryTransactionConsumer>>(context);
 
         endpointConfigurator.UseMessageRetry(r => r
             .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3))
