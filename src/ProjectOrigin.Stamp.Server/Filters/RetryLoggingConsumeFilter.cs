@@ -18,15 +18,24 @@ public class RetryLoggingConsumeFilter<T>(ILogger<RetryLoggingConsumeFilter<T>> 
         try
         {
             await next.Send(context);
+
+            logger.LogInformation("We are in the consumer filter");
         }
         catch (Exception)
         {
+            logger.LogInformation("We are in the retry");
+
             if (context is RetryConsumeContext retryContext)
             {
                 var count = retryContext.RetryCount;
                 var attempt = retryContext.RetryAttempt;
 
                 logger.LogInformation("RetryCount {Count}, Attempt {Attempt}", count, attempt);
+
+                if (count >= attempt)
+                {
+                    logger.LogError("All refresh attempts have been used for {Type}", typeof(T).Name);
+                }
             }
             throw;
         }
