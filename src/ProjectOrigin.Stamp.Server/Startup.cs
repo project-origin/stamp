@@ -29,7 +29,6 @@ using ProjectOrigin.Stamp.Server.Services.REST;
 using ProjectOrigin.Stamp.Server.EventHandlers;
 using ProjectOrigin.Stamp.Server.Helpers;
 using ProjectOrigin.Stamp.Server.Metrics;
-using ProjectOrigin.Stamp.Server.Filters;
 
 namespace ProjectOrigin.Stamp.Server;
 
@@ -115,8 +114,6 @@ public class Startup
                         .AddOtlpExporter(o => o.Endpoint = otlpOptions.Endpoint!));
         }
 
-        services.AddSingleton<RetryLoggingObserver>();
-
         services.AddMassTransit(o =>
         {
             o.DisableUsageTelemetry(); // https://masstransit.io/documentation/configuration/usage-telemetry
@@ -127,20 +124,6 @@ public class Startup
             {
                 if (cfg is IRabbitMqReceiveEndpointConfigurator rmq)
                     rmq.SetQuorumQueue(3);
-
-                cfg.UseMessageRetry(r =>
-                {
-                    r.Incremental(
-                        5,
-                        TimeSpan.FromSeconds(10),
-                        TimeSpan.FromSeconds(10));
-
-                    var retryObserver = ((IServiceProvider)cfg).GetService(typeof(RetryLoggingObserver));
-                    if (retryObserver is not null)
-                    {
-                        r.ConnectRetryObserver((RetryLoggingObserver)retryObserver);
-                    }
-                });
             });
 
             o.AddConsumer<IssueInRegistryConsumer, IssueInRegistryConsumerDefinition>();
