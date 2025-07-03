@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
+using ProjectOrigin.Stamp.Server.EventHandlers;
 
 namespace ProjectOrigin.Stamp.Server.Filters;
 
@@ -47,7 +48,10 @@ public class RetryLoggingObserver(ILogger<RetryLoggingObserver> logger) : IRetry
         if (certId.HasValue && StartTimes.TryRemove(certId.Value, out var start))
         {
             var elapsed = DateTime.UtcNow - start;
-            logger.LogInformation(context.Exception, "All retries exhausted for CertificateId {CertificateId} after {ElapsedSeconds} seconds", certId, elapsed.TotalSeconds);
+            logger.LogInformation(
+                    context.Exception,
+                    "All retries exhausted for CertificateId {CertificateId} after {ElapsedSeconds} seconds with retries {RetryCount}",
+                    certId, elapsed.TotalSeconds, context.RetryCount);
         }
         else
         {
