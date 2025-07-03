@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ProjectOrigin.Registry.V1;
 using ProjectOrigin.Stamp.Server.Exceptions;
-using ProjectOrigin.Stamp.Server.Filters;
 using ProjectOrigin.Stamp.Server.Options;
 using RegistryOptions = ProjectOrigin.Stamp.Server.Options.RegistryOptions;
 
