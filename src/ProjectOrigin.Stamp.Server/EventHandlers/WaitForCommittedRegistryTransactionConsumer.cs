@@ -112,7 +112,7 @@ public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDef
                 TimeSpan.FromSeconds(1),
                 TimeSpan.FromMinutes(3));
 
-            r.Handle<Exception>(ex => ex is not RegistryTransactionStillProcessingException);
+            r.Ignore<RegistryTransactionStillProcessingException>();
         });
 
         var retryObserver = context.GetService(typeof(RetryLoggingObserver));
