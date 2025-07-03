@@ -4,7 +4,7 @@ namespace ProjectOrigin.Stamp.Server.Options;
 
 public class RetryOptions
 {
-    public const string Retry = "Retry";
+    public const string Prefix = "Retry";
 
     [Required]
     public int DefaultFirstLevelRetryCount { get; set; }
