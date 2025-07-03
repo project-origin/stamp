@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using ProjectOrigin.Stamp.Server.EventHandlers;
 
 namespace ProjectOrigin.Stamp.Server.Filters;
 
@@ -30,6 +29,7 @@ public class RetryLoggingObserver(ILogger<RetryLoggingObserver> logger) : IRetry
 
     public Task PreRetry<T>(RetryContext<T> context) where T : class, PipeContext
     {
+        logger.LogInformation("PreRetry info {RetryCount}, {RetryAttempt}", context.RetryCount, context.RetryAttempt);
         var certId = GetMessageId(context.Context);
         if (certId.HasValue && StartTimes.TryGetValue(certId.Value, out var start))
         {
