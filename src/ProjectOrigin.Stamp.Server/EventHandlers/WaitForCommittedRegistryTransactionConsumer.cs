@@ -117,9 +117,9 @@ public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDef
 
         consumerConfigurator.UseMessageRetry(r =>
         {
-            r.Incremental(_retryOptions.RegistryTransactionStillProcessingRetryCount,
-                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingInitialIntervalSeconds),
-                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingIntervalIncrementSeconds));
+            r.Incremental(10,
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(10));
             r.Handle(typeof(RegistryTransactionStillProcessingException));
             r.ConnectRetryObserver((RetryLoggingObserver)retryObserver);
         });
