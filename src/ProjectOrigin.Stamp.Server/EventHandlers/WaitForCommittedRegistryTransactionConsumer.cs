@@ -94,41 +94,41 @@ public class RegistryTransactionStillProcessingException : Exception
 
 public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDefinition<WaitForCommittedRegistryTransactionConsumer>
 {
-    private readonly RetryOptions _retryOptions;
+    // private readonly RetryOptions _retryOptions;
 
-    public WaitForCommittedRegistryTransactionConsumerDefinition(IOptions<RetryOptions> options)
-    {
-        _retryOptions = options.Value;
-    }
+    // public WaitForCommittedRegistryTransactionConsumerDefinition(IOptions<RetryOptions> options)
+    // {
+    //     _retryOptions = options.Value;
+    // }
 
     protected override void ConfigureConsumer(IReceiveEndpointConfigurator endpointConfigurator,
         IConsumerConfigurator<WaitForCommittedRegistryTransactionConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
-        endpointConfigurator.UseMessageRetry(r =>
-        {
-            r.Incremental(
-                _retryOptions.DefaultFirstLevelRetryCount,
-                TimeSpan.FromSeconds(1),
-                TimeSpan.FromMinutes(3));
-
-            r.Ignore<RegistryTransactionStillProcessingException>();
-        });
-
-        var retryObserver = context.GetService(typeof(RetryLoggingObserver));
-        if (retryObserver is null)
-        {
-            throw new InvalidOperationException("Could not get service");
-        }
-
-        consumerConfigurator.UseMessageRetry(r =>
-        {
-            r.Incremental(10,
-                TimeSpan.FromSeconds(10),
-                TimeSpan.FromSeconds(10));
-
-            r.Handle<RegistryTransactionStillProcessingException>();
-            r.ConnectRetryObserver((RetryLoggingObserver)retryObserver);
-        });
+        // endpointConfigurator.UseMessageRetry(r =>
+        // {
+        //     r.Incremental(
+        //         _retryOptions.DefaultFirstLevelRetryCount,
+        //         TimeSpan.FromSeconds(1),
+        //         TimeSpan.FromMinutes(3));
+        //
+        //     r.Ignore<RegistryTransactionStillProcessingException>();
+        // });
+        //
+        // var retryObserver = context.GetService(typeof(RetryLoggingObserver));
+        // if (retryObserver is null)
+        // {
+        //     throw new InvalidOperationException("Could not get service");
+        // }
+        //
+        // consumerConfigurator.UseMessageRetry(r =>
+        // {
+        //     r.Incremental(_retryOptions.RegistryTransactionStillProcessingRetryCount,
+        //         TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingInitialIntervalSeconds),
+        //         TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingIntervalIncrementSeconds));
+        //
+        //     r.Handle<RegistryTransactionStillProcessingException>();
+        //     r.ConnectRetryObserver((RetryLoggingObserver)retryObserver);
+        // });
     }
 }

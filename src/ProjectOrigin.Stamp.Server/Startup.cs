@@ -127,6 +127,20 @@ public class Startup
             {
                 if (cfg is IRabbitMqReceiveEndpointConfigurator rmq)
                     rmq.SetQuorumQueue(3);
+
+                cfg.UseMessageRetry(r =>
+                {
+                    r.Incremental(
+                        5,
+                        TimeSpan.FromSeconds(10),
+                        TimeSpan.FromSeconds(10));
+
+                    var retryObserver = ((IServiceProvider)cfg).GetService(typeof(RetryLoggingObserver));
+                    if (retryObserver is not null)
+                    {
+                        r.ConnectRetryObserver((RetryLoggingObserver)retryObserver);
+                    }
+                });
             });
 
             o.AddConsumer<IssueInRegistryConsumer, IssueInRegistryConsumerDefinition>();
