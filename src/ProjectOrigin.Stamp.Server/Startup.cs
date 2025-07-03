@@ -74,7 +74,7 @@ public class Startup
             .ValidateOnStart();
 
         services.AddOptions<RetryOptions>()
-            .BindConfiguration(RetryOptions.Retry)
+            .BindConfiguration(RetryOptions.Prefix)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
