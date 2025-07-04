@@ -65,7 +65,7 @@ public static class IConfigurationExtensions
         var loggerConfiguration = new LoggerConfiguration()
             .Filter.ByExcluding("RequestPath like '/health%'")
             .Filter.ByExcluding("RequestPath like '/metrics%'")
-            .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate = 'R-RETRY {InputAddress} {MessageId} {MessageType}'")
+            .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate like 'R-RETRY%'")
             .Enrich.WithSpan();
 
         var logOutputFormat = configuration.GetValue<string>("LogOutputFormat");
