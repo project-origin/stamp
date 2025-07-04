@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -106,15 +104,23 @@ public class WaitForCommittedRegistryTransactionConsumerDefinition : ConsumerDef
         IConsumerConfigurator<WaitForCommittedRegistryTransactionConsumer> consumerConfigurator,
         IRegistrationContext context)
     {
-        endpointConfigurator.UseMessageRetry(r => r
-            .Incremental(_retryOptions.RegistryTransactionStillProcessingRetryCount,
-                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingInitialIntervalSeconds),
-                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingIntervalIncrementSeconds))
-            .Handle(typeof(RegistryTransactionStillProcessingException)));
+        endpointConfigurator.UseMessageRetry(r =>
+        {
+            r.Incremental(
+                _retryOptions.DefaultFirstLevelRetryCount,
+                TimeSpan.FromSeconds(1),
+                TimeSpan.FromMinutes(3));
 
-        endpointConfigurator.UseMessageRetry(r => r
-            .Incremental(_retryOptions.DefaultFirstLevelRetryCount, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(3))
-            .Ignore(typeof(RegistryTransactionStillProcessingException)));
+            r.Ignore<RegistryTransactionStillProcessingException>();
+        });
+
+        consumerConfigurator.UseMessageRetry(r =>
+        {
+            r.Incremental(_retryOptions.RegistryTransactionStillProcessingRetryCount,
+                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingInitialIntervalSeconds),
+                TimeSpan.FromSeconds(_retryOptions.RegistryTransactionStillProcessingIntervalIncrementSeconds));
+
+            r.Handle<RegistryTransactionStillProcessingException>();
+        });
     }
 }
-
