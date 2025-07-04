@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,7 +66,10 @@ public static class IConfigurationExtensions
         var loggerConfiguration = new LoggerConfiguration()
             .Filter.ByExcluding("RequestPath like '/health%'")
             .Filter.ByExcluding("RequestPath like '/metrics%'")
-            .Filter.ByExcluding("SourceContext like 'MassTransit.ReceiveTransport%' and MessageTemplate like 'R-RETRY%'")
+            .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate like 'R-RETRY%'")
+            .Filter.ByExcluding(logEvent =>
+                logEvent.MessageTemplate.Text.Contains("R-RETRY") &&
+                logEvent.MessageTemplate.Text.Contains("MassTransit.ReceiveTransport"))
             .Enrich.WithSpan();
 
         var logOutputFormat = configuration.GetValue<string>("LogOutputFormat");
