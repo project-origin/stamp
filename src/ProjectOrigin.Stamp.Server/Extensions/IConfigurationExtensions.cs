@@ -67,7 +67,6 @@ public static class IConfigurationExtensions
         var loggerConfiguration = new LoggerConfiguration()
             .Filter.ByExcluding("RequestPath like '/health%'")
             .Filter.ByExcluding("RequestPath like '/metrics%'")
-            .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("R-RETRY"))
             .Filter.ByExcluding(logEvent =>
                 logEvent.Properties.TryGetValue("SourceContext", out var source)
                 && source.ToString().Contains("MassTransit.ReceiveTransport")
