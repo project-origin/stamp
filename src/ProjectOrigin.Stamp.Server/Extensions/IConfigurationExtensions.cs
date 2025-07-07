@@ -67,9 +67,14 @@ public static class IConfigurationExtensions
         var loggerConfiguration = new LoggerConfiguration()
             .Filter.ByExcluding("RequestPath like '/health%'")
             .Filter.ByExcluding("RequestPath like '/metrics%'")
-            .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate like 'R-RETRY%'")
+            // .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate like 'R-RETRY%'")
             .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("R-RETRY"))
-            .Filter.ByExcluding(logEvent => logEvent.RenderMessage().Contains("R-RETRY"))
+            // .Filter.ByExcluding(logEvent => logEvent.RenderMessage().Contains("R-RETRY"))
+            .Filter.ByExcluding(logEvent =>
+                logEvent.Properties.TryGetValue("SourceContext", out var source)
+                && source.ToString().Contains("MassTransit.ReceiveTransport")
+                && logEvent.Properties.TryGetValue("MessageType", out var type)
+                && type.ToString().Contains("RetryConsumeContext"))
             .Enrich.WithSpan();
 
         var logOutputFormat = configuration.GetValue<string>("LogOutputFormat");
