@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ProjectOrigin.Stamp.Server.Database;
 using Serilog;
+using Serilog.Core;
 using Serilog.Enrichers.Span;
+using Serilog.Events;
 using Serilog.Formatting.Json;
 
 namespace ProjectOrigin.Stamp.Server.Extensions;
@@ -64,7 +66,10 @@ public static class IConfigurationExtensions
 
     public static Serilog.ILogger GetSeriLogger(this IConfiguration configuration)
     {
+        var prefix = configuration.GetValue<string>("LogPrefix") ?? "[TESTPREFIX]";
+
         var loggerConfiguration = new LoggerConfiguration()
+            .Enrich.With(new LogPrefixEnricher(prefix))
             .Filter.ByExcluding("RequestPath like '/health%'")
             .Filter.ByExcluding("RequestPath like '/metrics%'")
             .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate like 'R-RETRY%'")
@@ -75,6 +80,7 @@ public static class IConfigurationExtensions
 
         var logOutputFormat = configuration.GetValue<string>("LogOutputFormat");
 
+        var outputTemplate = "{LogPrefix} [{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
         switch (logOutputFormat)
         {
             case "json":
@@ -82,7 +88,7 @@ public static class IConfigurationExtensions
                 break;
 
             case "text":
-                loggerConfiguration = loggerConfiguration.WriteTo.Console();
+                loggerConfiguration = loggerConfiguration.WriteTo.Console(outputTemplate: outputTemplate);
                 break;
 
             default:
@@ -90,5 +96,22 @@ public static class IConfigurationExtensions
         }
 
         return loggerConfiguration.CreateLogger();
+    }
+
+    public class LogPrefixEnricher : ILogEventEnricher
+    {
+        private readonly string _prefix;
+        private readonly LogEventProperty _property;
+
+        public LogPrefixEnricher(string prefix)
+        {
+            _prefix = prefix;
+            _property = new LogEventProperty("LogPrefix", new ScalarValue(_prefix));
+        }
+
+        public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+        {
+            logEvent.AddPropertyIfAbsent(_property);
+        }
     }
 }
