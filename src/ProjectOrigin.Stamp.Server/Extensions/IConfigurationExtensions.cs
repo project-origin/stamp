@@ -52,6 +52,7 @@ public static class IConfigurationExtensions
 
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(Log.Logger);
+        builder.Host.UseSerilog(Log.Logger);
 
         var startup = new Startup(builder.Configuration);
         startup.ConfigureServices(builder.Services);
@@ -66,10 +67,12 @@ public static class IConfigurationExtensions
         var loggerConfiguration = new LoggerConfiguration()
             .Filter.ByExcluding("RequestPath like '/health%'")
             .Filter.ByExcluding("RequestPath like '/metrics%'")
-            .Filter.ByExcluding("SourceContext = 'MassTransit.ReceiveTransport' and MessageTemplate like 'R-RETRY%'")
+            .Filter.ByExcluding(logEvent => logEvent.MessageTemplate.Text.Contains("R-RETRY"))
             .Filter.ByExcluding(logEvent =>
-                logEvent.MessageTemplate.Text.Contains("R-RETRY") &&
-                logEvent.MessageTemplate.Text.Contains("MassTransit.ReceiveTransport"))
+                logEvent.Properties.TryGetValue("SourceContext", out var source)
+                && source.ToString().Contains("MassTransit.ReceiveTransport")
+                && logEvent.Properties.TryGetValue("MessageType", out var type)
+                && type.ToString().Contains("RetryConsumeContext"))
             .Enrich.WithSpan();
 
         var logOutputFormat = configuration.GetValue<string>("LogOutputFormat");
