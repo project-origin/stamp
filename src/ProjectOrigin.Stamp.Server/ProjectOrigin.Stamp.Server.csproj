@@ -27,8 +27,8 @@
     <PackageReference Include="Npgsql.OpenTelemetry" Version="9.0.3" />
     <PackageReference Include="NSec.Cryptography" Version="25.4.0" />
     <PackageReference Include="Microsoft.Identity.Web" Version="3.10.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.7" />
     <PackageReference Include="OpenTelemetry" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
@@ -40,8 +40,8 @@
     <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageReference Include="Serilog.Enrichers.Span" Version="3.1.0" />
     <PackageReference Include="Serilog.Expressions" Version="5.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.2" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.3" />
   </ItemGroup>
 
   <ItemGroup>
