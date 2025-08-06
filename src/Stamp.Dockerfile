@@ -13,7 +13,7 @@ RUN dotnet build ${PROJECT} -c Release --no-restore -o /app/build
 RUN dotnet publish ${PROJECT} -c Release -o /app/publish
 
 # ------- production image -------
-FROM mcr.microsoft.com/dotnet/aspnet:9.0.7-noble-chiseled-extra AS production
+FROM mcr.microsoft.com/dotnet/aspnet:9.0.8-noble-chiseled-extra AS production
 ARG PROJECT
 
 ENV APPLICATION=${PROJECT}
