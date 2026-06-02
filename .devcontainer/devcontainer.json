@@ -6,7 +6,7 @@
     // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
         "ghcr.io/devcontainers/features/dotnet:2" : {"additionalVersions": "9.0.301"},
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+        "ghcr.io/devcontainers/features/docker-in-docker:3": {},
         "ghcr.io/mpriscella/features/kind:1": {},
         "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
     },
