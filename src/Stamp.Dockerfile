@@ -1,6 +1,6 @@
 ARG PROJECT=ProjectOrigin.Stamp.Server
 
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0.305 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0.400 AS build
 ARG PROJECT
 
 WORKDIR /src
